@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fefefe;
+  --foreground: #1a1a2e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Nunito', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Ensure minimum tap target size */
+button, a, [role="button"] {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Playful scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* Animated robot */
+@keyframes robot-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes robot-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.05); }
+}
+@keyframes arm-wave {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(20deg); }
+}
+@keyframes star-pop {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.robot-bounce { animation: robot-bounce 2s ease-in-out infinite; }
+.robot-eye { animation: robot-blink 3s ease-in-out infinite; }
+.arm-wave { animation: arm-wave 0.5s ease-in-out infinite; }
+.star-pop { animation: star-pop 0.5s ease-out forwards; }
+
+/* Big tap buttons for kids */
+.tap-btn {
+  @apply flex flex-col items-center justify-center gap-2 p-6 rounded-3xl font-bold text-white shadow-lg active:scale-95 transition-all duration-150 cursor-pointer select-none;
+  min-height: 120px;
+  font-size: 1.1rem;
+}
+
+/* Mission cards */
+.mission-card {
+  @apply flex flex-col gap-3 p-5 rounded-3xl shadow-md cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 active:scale-95;
+}
