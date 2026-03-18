@@ -1,0 +1,88 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Project Planning"
+  track="young-builders"
+  week={10}
+  phase="Phase 4: Capstone"
+  duration="60 min"
+  emoji="📐"
+  objective="Design an original robot interaction project from scratch"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      You will define your capstone project, write a project brief, identify the technical requirements, and create a plan with milestones.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Brainstorm (15 min)</h3><p class="text-gray-600">Generate 5 project ideas. For each: what problem does it solve? Who is it for? What skills from Weeks 1-9 does it use? Rate each 1-5 for feasibility and interest.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Write the Project Brief (20 min)</h3><p class="text-gray-600">Fill in the project brief template below. Be specific about what Reachy will do — not what it "might" do.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Technical Breakdown (15 min)</h3><p class="text-gray-600">List the Python functions you'll need. What data will flow through the system? Draw a simple diagram.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Week 11 Plan (10 min)</h3><p class="text-gray-600">Break the project into tasks. Estimate which you'll finish in Week 11 (build) and what goes in the demo.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8 bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-6">
+    <h2 class="text-2xl font-bold text-indigo-700 mb-4">📄 Project Brief Template</h2>
+    <div class="space-y-4 text-sm">
+      <div class="bg-white rounded-xl p-4 border border-indigo-200">
+        <p class="font-bold text-gray-700 mb-1">Project Name:</p>
+        <div class="border-b border-gray-300 h-6"></div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-indigo-200">
+        <p class="font-bold text-gray-700 mb-1">Problem it solves / Why it's cool:</p>
+        <div class="border-b border-gray-300 h-6 mb-2"></div>
+        <div class="border-b border-gray-300 h-6"></div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-indigo-200">
+        <p class="font-bold text-gray-700 mb-2">Reachy will:</p>
+        <div class="space-y-1">
+          <div class="flex gap-2 items-center"><span>1.</span><div class="flex-1 border-b border-gray-300 h-6"></div></div>
+          <div class="flex gap-2 items-center"><span>2.</span><div class="flex-1 border-b border-gray-300 h-6"></div></div>
+          <div class="flex gap-2 items-center"><span>3.</span><div class="flex-1 border-b border-gray-300 h-6"></div></div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-indigo-200">
+        <p class="font-bold text-gray-700 mb-1">Inputs/Sensors needed:</p>
+        <div class="border-b border-gray-300 h-6"></div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-indigo-200">
+        <p class="font-bold text-gray-700 mb-1">Skills from Weeks 1-9 I'll use:</p>
+        <div class="border-b border-gray-300 h-6"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What's the riskiest part of your project? How will you handle it?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What does "done" look like? How will you know if it worked?</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 Help your child choose a project that is <strong>ambitious but achievable in one session</strong>. A small project done well beats a big one half-finished.</p>
+      <p class="mt-2">💡 This planning process is exactly what professional software engineers do before starting any project.</p>
+    </div>
+  </section>
+</LessonLayout>

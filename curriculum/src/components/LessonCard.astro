@@ -1,0 +1,27 @@
+---
+export interface Props {
+  week: number;
+  title: string;
+  emoji: string;
+  objective: string;
+  duration: string;
+  phase: string;
+  track: string;
+  phaseColor: string;
+}
+const { week, title, emoji, objective, duration, phase, track, phaseColor } = Astro.props;
+const href = `/${track}/week-${String(week).padStart(2,'0')}`;
+---
+<a href={href} class="group block rounded-2xl border-2 border-gray-200 hover:border-gray-400 bg-white hover:shadow-md transition-all p-5">
+  <div class="flex items-start gap-3">
+    <span class="text-3xl group-hover:scale-110 transition-transform">{emoji}</span>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <span class={`text-xs font-bold px-2 py-0.5 rounded-full text-white ${phaseColor}`}>{phase}</span>
+        <span class="text-xs text-gray-500 font-medium">Week {week} · {duration}</span>
+      </div>
+      <h3 class="font-bold text-gray-900 group-hover:text-gray-700 truncate">{title}</h3>
+      <p class="text-sm text-gray-600 mt-1 line-clamp-2">{objective}</p>
+    </div>
+  </div>
+</a>

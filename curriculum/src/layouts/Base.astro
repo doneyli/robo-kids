@@ -1,0 +1,35 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'robo-kids 12-Week Family Robotics Curriculum' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — robo-kids Curriculum</title>
+  <meta name="description" content={description} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+  <nav class="no-print bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-wrap gap-4">
+    <a href="/" class="text-xl font-extrabold text-gray-800">🤖 robo-kids curriculum</a>
+    <div class="flex gap-6 text-sm font-semibold">
+      <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+      <a href="/little-explorers" class="text-explorer-600 hover:text-explorer-700">Little Explorers</a>
+      <a href="/young-builders" class="text-builder-600 hover:text-builder-700">Young Builders</a>
+    </div>
+  </nav>
+  <main>
+    <slot />
+  </main>
+  <footer class="no-print mt-16 border-t border-gray-200 py-8 text-center text-sm text-gray-500">
+    robo-kids curriculum — built with ❤️ for curious families
+  </footer>
+</body>
+</html>

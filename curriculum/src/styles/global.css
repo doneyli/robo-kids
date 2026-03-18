@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+@layer base {
+  html { font-family: 'Nunito', system-ui, sans-serif; }
+  h1 { @apply text-3xl font-extrabold; }
+  h2 { @apply text-2xl font-bold; }
+  h3 { @apply text-xl font-semibold; }
+}
+
+@media print {
+  nav, .no-print { display: none !important; }
+  body { font-size: 12pt; color: #000; background: #fff; }
+  .lesson-section { break-inside: avoid; page-break-inside: avoid; }
+  a[href]::after { content: none; }
+  .print-section { page-break-before: always; }
+  h1, h2, h3 { page-break-after: avoid; }
+  .print-hide { display: none !important; }
+}

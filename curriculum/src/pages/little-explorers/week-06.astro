@@ -1,0 +1,85 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Reachy's Eyes"
+  track="little-explorers"
+  week={6}
+  phase="Phase 2: Meet Reachy"
+  duration="30 min"
+  emoji="👀"
+  objective="Discover how Reachy sees the world through its camera"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-explorer-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-explorer-50 border-l-4 border-explorer-400 p-4 rounded-r-xl text-gray-700">
+      Your child will understand that robots "see" differently than humans — using cameras and numbers — and will explore what Reachy can see.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">🛠️ Materials</h2>
+    <ul class="space-y-2 text-gray-700">
+      <li class="flex items-center gap-2">✅ Computer + webcam (or Reachy Mini)</li>
+      <li class="flex items-center gap-2">✅ Colourful objects to hold up</li>
+      <li class="flex items-center gap-2">✅ A mirror (for comparison to robot camera)</li>
+    </ul>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-explorer-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Eye Spy (5 min)</h3><p class="text-gray-600">Look in a mirror together. "What do you see? What does a camera see?" Talk about how cameras take pictures like eyes do.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-explorer-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Peek Through Reachy's Eyes (15 min)</h3><p class="text-gray-600">Run the code below. It shows what the camera sees. Hold up colourful toys. Wave! Make funny faces!</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-explorer-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Draw What Reachy Sees (10 min)</h3><p class="text-gray-600">Freeze the camera. Draw what's on screen from Reachy's point of view.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Code Snippet</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># reachy_eyes.py — Week 6: Little Explorers
+import time
+
+class ReachyMock:
+    def look_around(self):
+        print("👀 Reachy's camera is ON!")
+        things = ["a red ball", "a smiling face", "hands waving", "bright colours"]
+        for thing in things:
+            print(f"👁️  Reachy sees: {thing}")
+            time.sleep(1)
+        print("📷 Reachy took a snapshot!")
+
+try:
+    from reachy_mini import ReachyMini
+    robot = ReachyMini()
+except Exception:
+    robot = ReachyMock()
+    print("🎮 Simulator mode — camera preview simulated")
+
+robot.look_around()</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4"><p class="font-semibold text-yellow-800">🌟 "Can Reachy blink? Why or why not?"</p></div>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4"><p class="font-semibold text-yellow-800">🌟 "If Reachy looked at YOU, what would it see?"</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 text-gray-700">
+      <p>💡 This is the perfect time to introduce the idea that robots don't "understand" what they see the way we do — they see numbers and pixels. Keep it light and wonder-filled.</p>
+    </div>
+  </section>
+</LessonLayout>

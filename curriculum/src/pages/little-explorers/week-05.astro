@@ -1,0 +1,90 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Reachy Waves!"
+  track="little-explorers"
+  week={5}
+  phase="Phase 2: Meet Reachy"
+  duration="30 min"
+  emoji="🤚"
+  objective="Make Reachy wave its arm for the first time"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-explorer-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-explorer-50 border-l-4 border-explorer-400 p-4 rounded-r-xl text-gray-700">
+      Your child will understand that code can make robot bodies move, and will feel the excitement of controlling a robot's arm.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">🛠️ Materials</h2>
+    <ul class="space-y-2 text-gray-700">
+      <li class="flex items-center gap-2">✅ Computer with Python + reachy-mini SDK</li>
+      <li class="flex items-center gap-2">✅ Reachy Mini (or simulator)</li>
+    </ul>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-explorer-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Wave Like Reachy (5 min)</h3><p class="text-gray-600">Together, practice waving in slow motion. Count: "Up… hold… down… hold." This is exactly what the code will do! Your body IS the algorithm.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-explorer-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Read the Code Together (5 min)</h3><p class="text-gray-600">Look at the code below. Point to each line and ask: "What do you think THIS does?" Don't worry about being right — build curiosity.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-explorer-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Run It! (10 min)</h3><p class="text-gray-600">Let your child run the code. Watch Reachy's arm move. Try changing the number of waves — make it wave 5 times!</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-explorer-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Robot Wave Off (10 min)</h3><p class="text-gray-600">Have a waving competition between your child and Reachy. Who waves more? Who waves faster?</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Code Snippet</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># wave.py — Week 5: Little Explorers
+import time
+
+class ReachyMock:
+    def wave(self, times=1):
+        for i in range(times):
+            print(f"🤚 Wave {i+1}: arm goes UP!")
+            time.sleep(0.5)
+            print(f"🤚 Wave {i+1}: arm comes DOWN!")
+            time.sleep(0.5)
+        print("👋 Done waving!")
+
+try:
+    from reachy_mini import ReachyMini
+    robot = ReachyMini()
+except Exception:
+    robot = ReachyMock()
+    print("🎮 Simulator mode")
+
+# Make Reachy wave 3 times
+# Try changing the number!
+robot.wave(times=3)</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4"><p class="font-semibold text-yellow-800">🌟 "What number did you use for waves? Why?"</p></div>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4"><p class="font-semibold text-yellow-800">🌟 "Could Reachy wave forever? What would you need to change?"</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 text-gray-700">
+      <p>💡 Changing a number in the code and seeing the behavior change is a huge "aha" moment. Give your child time to experiment.</p>
+    </div>
+  </section>
+</LessonLayout>

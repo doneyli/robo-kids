@@ -1,0 +1,121 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Algorithms in Real Life"
+  track="young-builders"
+  week={1}
+  phase="Phase 1: Computational Thinking"
+  duration="60 min"
+  emoji="🧠"
+  objective="Understand sequences, loops, and conditionals through everyday examples"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      By the end of this session, you will be able to identify algorithms in everyday life, distinguish sequences from loops and conditionals, and write your first pseudocode.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">🛠️ Materials</h2>
+    <ul class="space-y-2 text-gray-700">
+      <li class="flex items-center gap-2">✅ Pencil and notebook</li>
+      <li class="flex items-center gap-2">✅ Index cards (one per step)</li>
+      <li class="flex items-center gap-2">✅ Computer with Python 3 installed</li>
+    </ul>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📚 Concepts</h2>
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
+        <div class="text-2xl mb-1">📋</div>
+        <h3 class="font-bold text-cyan-700">Sequence</h3>
+        <p class="text-sm text-gray-600">Steps that happen in order, one after another. Like a recipe.</p>
+      </div>
+      <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
+        <div class="text-2xl mb-1">🔁</div>
+        <h3 class="font-bold text-cyan-700">Loop</h3>
+        <p class="text-sm text-gray-600">Repeating the same steps multiple times. Like brushing all your teeth.</p>
+      </div>
+      <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
+        <div class="text-2xl mb-1">🔀</div>
+        <h3 class="font-bold text-cyan-700">Conditional</h3>
+        <p class="text-sm text-gray-600">IF something is true, THEN do one thing, ELSE do another. Like checking the weather.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Algorithm Hunt (15 min)</h3><p class="text-gray-600">Find 3 algorithms in everyday life. Write each one as numbered steps. Examples: getting ready for school, making a sandwich, tying shoelaces. Identify: is each step a sequence, loop, or conditional?</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Human Computer (15 min)</h3><p class="text-gray-600">One person is the "programmer," one is the "computer." The programmer writes instructions for a simple physical task (make a peanut butter sandwich). The computer follows them EXACTLY. No interpretation! Experience why precision matters.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Python Intro (20 min)</h3><p class="text-gray-600">Open Python. Run the code below. Modify it: add a new step, change the loop count, add a new condition.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Reflect & Write (10 min)</h3><p class="text-gray-600">In your notebook: write a 5-step algorithm for something you'll do tomorrow. Mark each step's type (S/L/C).</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Code Snippet</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># algorithms.py — Week 1: Young Builders
+# Run with: python algorithms.py
+
+# SEQUENCE: steps in order
+print("=== Getting Ready Algorithm ===")
+steps = ["Wake up", "Eat breakfast", "Brush teeth", "Get dressed", "Pack bag"]
+for i, step in enumerate(steps, 1):      # LOOP: repeat for each step
+    print(f"  Step {i}: {step}")
+
+# CONDITIONAL: decision based on data
+print("\n=== Weather Algorithm ===")
+temperature = 15  # degrees Celsius — try changing this!
+
+if temperature > 20:                      # CONDITIONAL
+    print("  It's warm → wear a t-shirt")
+elif temperature > 10:
+    print("  It's cool → wear a jacket")
+else:
+    print("  It's cold → wear a heavy coat")
+
+# YOUR TURN: write an algorithm below
+print("\n=== My Algorithm ===")
+# Add your steps here!
+my_steps = [
+    "Step 1: ???",
+    "Step 2: ???",
+]
+for step in my_steps:
+    print(f"  {step}")</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What makes a good algorithm? What makes a bad one?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 Where did you find a loop in real life that surprised you?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What happens when a computer gets an ambiguous instruction?</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 The "human computer" game is a classic CS education activity. Being a literal computer that can't think flexibly is hilarious and educational.</p>
+      <p class="mt-2">💡 If your child hasn't used Python before: <code class="bg-gray-100 px-1 rounded">python3 --version</code> in Terminal/Command Prompt to verify it's installed.</p>
+    </div>
+  </section>
+</LessonLayout>

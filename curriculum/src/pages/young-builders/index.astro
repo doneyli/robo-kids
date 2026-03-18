@@ -1,0 +1,71 @@
+---
+import Base from '../../layouts/Base.astro';
+import LessonCard from '../../components/LessonCard.astro';
+import ProgressionMap from '../../components/ProgressionMap.astro';
+
+const phases = [
+  {
+    name: 'Phase 1: Computational Thinking',
+    color: 'bg-cyan-500',
+    lessons: [
+      { week: 1, title: 'Algorithms in Real Life', emoji: '🧠', objective: 'Understand sequences, loops, and conditionals through everyday examples', duration: '60 min' },
+      { week: 2, title: 'Robot Logic & Debugging', emoji: '🐛', objective: 'Write and debug simple algorithms as a human robot', duration: '60 min' },
+      { week: 3, title: 'Data & Sensors', emoji: '📡', objective: 'Explore how robots collect and use data from the world', duration: '60 min' },
+    ],
+  },
+  {
+    name: 'Phase 2: Reachy Basics',
+    color: 'bg-blue-500',
+    lessons: [
+      { week: 4, title: 'Setup & Hello World', emoji: '💻', objective: 'Connect to Reachy Mini and run your first Python command', duration: '60 min' },
+      { week: 5, title: 'Making Reachy Move', emoji: '🦾', objective: 'Control arm and head movements with code', duration: '60 min' },
+      { week: 6, title: 'Sensors & Responses', emoji: '🎯', objective: 'Read from camera and touch sensor, write reaction code', duration: '60 min' },
+    ],
+  },
+  {
+    name: 'Phase 3: AI Projects',
+    color: 'bg-violet-500',
+    lessons: [
+      { week: 7, title: 'Computer Vision Basics', emoji: '👁️', objective: "Use Reachy's camera to recognize colors and shapes", duration: '60 min' },
+      { week: 8, title: 'Voice & Conversation', emoji: '🎤', objective: 'Build a simple voice interface for Reachy', duration: '60 min' },
+      { week: 9, title: 'Smart Reactions', emoji: '⚡', objective: 'Combine sensors and AI to create intelligent responses', duration: '60 min' },
+    ],
+  },
+  {
+    name: 'Phase 4: Capstone',
+    color: 'bg-indigo-600',
+    lessons: [
+      { week: 10, title: 'Project Planning', emoji: '📐', objective: 'Design an original robot interaction from scratch', duration: '60 min' },
+      { week: 11, title: 'Build & Test', emoji: '🔨', objective: 'Implement your project with iteration and debugging', duration: '60 min' },
+      { week: 12, title: 'Demo Day', emoji: '🚀', objective: 'Present your project and reflect on the journey', duration: '60 min' },
+    ],
+  },
+];
+---
+<Base title="Young Builders">
+  <div class="bg-gradient-to-br from-builder-500 to-builder-700 text-white py-12 px-6 text-center">
+    <div class="text-5xl mb-3">🔧</div>
+    <h1 class="text-3xl font-extrabold mb-2">Young Builders</h1>
+    <p class="text-builder-100 text-lg">Age 8 · 60-min sessions · 12 weeks of structured robotics learning</p>
+  </div>
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <ProgressionMap track="young-builders" />
+    {phases.map(phase => (
+      <div class="mb-10">
+        <div class={`inline-block text-white text-sm font-bold px-3 py-1 rounded-full mb-4 ${phase.color}`}>
+          {phase.name}
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          {phase.lessons.map(l => (
+            <LessonCard
+              week={l.week} title={l.title} emoji={l.emoji}
+              objective={l.objective} duration={l.duration}
+              phase={phase.name.split(':')[0]} track="young-builders"
+              phaseColor={phase.color}
+            />
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</Base>

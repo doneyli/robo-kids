@@ -1,0 +1,71 @@
+---
+import Base from '../../layouts/Base.astro';
+import LessonCard from '../../components/LessonCard.astro';
+import ProgressionMap from '../../components/ProgressionMap.astro';
+
+const phases = [
+  {
+    name: 'Phase 1: Unplugged Activities',
+    color: 'bg-yellow-400',
+    lessons: [
+      { week: 1, title: 'What is a Robot?', emoji: '🤔', objective: 'Discover that robots are machines that follow instructions', duration: '30 min' },
+      { week: 2, title: 'Robots Move!', emoji: '🚶', objective: 'Explore how robots move their body parts', duration: '30 min' },
+      { week: 3, title: 'Giving Instructions', emoji: '📣', objective: 'Learn that robots need clear step-by-step instructions', duration: '30 min' },
+    ],
+  },
+  {
+    name: 'Phase 2: Meet Reachy Mini',
+    color: 'bg-orange-400',
+    lessons: [
+      { week: 4, title: 'Hello, Reachy!', emoji: '👋', objective: 'Meet our robot friend and say hello', duration: '30 min' },
+      { week: 5, title: 'Reachy Waves!', emoji: '🤚', objective: 'Make Reachy wave its arm for the first time', duration: '30 min' },
+      { week: 6, title: "Reachy's Eyes", emoji: '👀', objective: "Discover how Reachy sees the world through its camera", duration: '30 min' },
+    ],
+  },
+  {
+    name: 'Phase 3: Creative Play',
+    color: 'bg-pink-400',
+    lessons: [
+      { week: 7, title: 'Robot Dance Party', emoji: '💃', objective: 'Create a dance routine with Reachy', duration: '30 min' },
+      { week: 8, title: "Reachy's Feelings", emoji: '😊', objective: "Explore how Reachy expresses emotions with its eyes", duration: '30 min' },
+      { week: 9, title: 'Robot Art', emoji: '🎨', objective: 'Use Reachy movements to create a story or art', duration: '30 min' },
+    ],
+  },
+  {
+    name: 'Phase 4: Mini Projects',
+    color: 'bg-red-400',
+    lessons: [
+      { week: 10, title: 'Show & Tell', emoji: '🌟', objective: 'Show a friend or family member what Reachy can do', duration: '30 min' },
+      { week: 11, title: 'Robot Helper', emoji: '🤝', objective: "Design a task for Reachy to help with", duration: '30 min' },
+      { week: 12, title: 'Robot Celebration!', emoji: '🎉', objective: 'Celebrate 12 weeks of robotics exploration', duration: '30 min' },
+    ],
+  },
+];
+---
+<Base title="Little Explorers">
+  <div class="bg-gradient-to-br from-explorer-500 to-explorer-700 text-white py-12 px-6 text-center">
+    <div class="text-5xl mb-3">🌟</div>
+    <h1 class="text-3xl font-extrabold mb-2">Little Explorers</h1>
+    <p class="text-explorer-100 text-lg">Age 4 · 30-min sessions · 12 weeks of play-based robotics</p>
+  </div>
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <ProgressionMap track="little-explorers" />
+    {phases.map(phase => (
+      <div class="mb-10">
+        <div class={`inline-block text-white text-sm font-bold px-3 py-1 rounded-full mb-4 ${phase.color}`}>
+          {phase.name}
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          {phase.lessons.map(l => (
+            <LessonCard
+              week={l.week} title={l.title} emoji={l.emoji}
+              objective={l.objective} duration={l.duration}
+              phase={phase.name.split(':')[0]} track="little-explorers"
+              phaseColor={phase.color}
+            />
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</Base>

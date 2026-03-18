@@ -1,0 +1,124 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Making Reachy Move"
+  track="young-builders"
+  week={5}
+  phase="Phase 2: Reachy Basics"
+  duration="60 min"
+  emoji="🦾"
+  objective="Control Reachy's arm and head movements with Python code"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      You will understand robot coordinate systems, control Reachy's joints programmatically, and create a custom movement sequence.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📚 Key Concepts</h2>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
+      <h3 class="font-bold text-blue-700 mb-3">Joint Angles</h3>
+      <p class="text-sm text-gray-600 mb-2">Robot arms move by rotating joints. Each joint has an angle measured in degrees:</p>
+      <ul class="text-sm text-gray-600 space-y-1">
+        <li>• <strong>0°</strong> = neutral position</li>
+        <li>• <strong>+90°</strong> = 90 degrees one direction</li>
+        <li>• <strong>-90°</strong> = 90 degrees the other direction</li>
+        <li>• Reachy's shoulder can rotate ±90° and flex ±100°</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Your Body as a Robot (10 min)</h3><p class="text-gray-600">Measure your own arm movements in degrees. Put your arm at your side = 0°. Raise it 45°, then 90°. Feel the difference. This is exactly how Reachy's motors work!</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Move Experiments (30 min)</h3><p class="text-gray-600">Run the code below. Try different angles. Create a wave motion by looping through a sequence of angles. What's the difference between a fast move and a slow one?</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Choreograph a Sequence (10 min)</h3><p class="text-gray-600">Design a 6-step movement sequence. Give it a name. Save it as a function.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Reflection (10 min)</h3><p class="text-gray-600">Write: what is the hardest movement to program? Why?</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Code Snippet</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># movement.py — Week 5: Young Builders
+import time
+
+class ReachyMock:
+    def move_arm(self, arm, shoulder_angle, elbow_angle, speed=1.0):
+        print(f"🦾 {arm} arm: shoulder={shoulder_angle}°, elbow={elbow_angle}° (speed={speed})")
+        time.sleep(1.0 / speed)
+
+    def move_head(self, pitch=0, yaw=0, roll=0):
+        print(f"🤖 Head: pitch={pitch}°, yaw={yaw}°, roll={roll}°")
+        time.sleep(0.5)
+
+    def go_to_rest(self):
+        print("😌 Moving to rest position")
+        time.sleep(1)
+
+try:
+    from reachy_mini import ReachyMini
+    robot = ReachyMini()
+except Exception:
+    robot = ReachyMock()
+    print("🎮 Simulator mode\n")
+
+# Basic movements
+robot.go_to_rest()
+
+# Raise right arm
+robot.move_arm("right", shoulder_angle=90, elbow_angle=0, speed=0.5)
+time.sleep(0.5)
+
+# Wave (loop through angles)
+print("\n👋 Waving...")
+for _ in range(3):
+    robot.move_arm("right", shoulder_angle=90, elbow_angle=45, speed=2.0)
+    robot.move_arm("right", shoulder_angle=90, elbow_angle=-45, speed=2.0)
+
+robot.go_to_rest()
+
+# Head movements
+print("\n👀 Looking around...")
+for direction, yaw in [("left", -30), ("center", 0), ("right", 30), ("center", 0)]:
+    print(f"  → {direction}")
+    robot.move_head(yaw=yaw)
+
+# YOUR MOVEMENT SEQUENCE:
+def my_sequence(robot):
+    """Add your 6-step sequence here!"""
+    pass
+
+my_sequence(robot)</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 How many degrees of freedom does Reachy's arm have? What about yours?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 Why does speed matter? When would slow movement be better than fast?</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 Coordinate systems and angle notation are also used in trigonometry and physics. Your child is building cross-curricular intuition!</p>
+    </div>
+  </section>
+</LessonLayout>

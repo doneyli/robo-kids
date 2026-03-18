@@ -1,0 +1,135 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Data & Sensors"
+  track="young-builders"
+  week={3}
+  phase="Phase 1: Computational Thinking"
+  duration="60 min"
+  emoji="📡"
+  objective="Explore how robots collect and use data from the world"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      You will understand what a sensor is, how robots use data to make decisions, and simulate sensor data in Python before connecting to real hardware.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📚 Key Concepts</h2>
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
+        <h3 class="font-bold text-cyan-700">📥 Input</h3>
+        <p class="text-sm text-gray-600">Data coming IN to the robot (camera, microphone, touch sensor)</p>
+      </div>
+      <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
+        <h3 class="font-bold text-cyan-700">⚙️ Processing</h3>
+        <p class="text-sm text-gray-600">The robot's brain decides what to do with the data</p>
+      </div>
+      <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
+        <h3 class="font-bold text-cyan-700">📤 Output</h3>
+        <p class="text-sm text-gray-600">What the robot does (move arm, speak, change eyes)</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Sensor Map (15 min)</h3><p class="text-gray-600">Draw Reachy Mini. Label every sensor you can find. Then: for each sensor, write one thing Reachy could DO with that data.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Simulate Sensors in Python (25 min)</h3><p class="text-gray-600">Run the code below. It simulates sensor readings. Add two new sensors of your own invention!</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Decision Tree (10 min)</h3><p class="text-gray-600">Draw a decision tree: IF camera sees a person → do X, ELSE IF sound level is high → do Y, ELSE → do Z. Convert to Python if/elif/else code.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Reflection (10 min)</h3><p class="text-gray-600">Write: what sensors would your DREAM robot have? What data would it collect?</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Code Snippet</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># sensors.py — Week 3: Young Builders
+import random
+import time
+
+class SensorSimulator:
+    """Simulates robot sensors with random data."""
+
+    def read_camera(self):
+        """Returns what the camera 'sees'."""
+        possible = ["a person", "an empty room", "a bright light", "a hand", None]
+        return random.choice(possible)
+
+    def read_sound_level(self):
+        """Returns sound level 0-100."""
+        return random.randint(0, 100)
+
+    def read_battery(self):
+        """Returns battery % 0-100."""
+        return random.randint(20, 100)
+
+    # ADD YOUR OWN SENSOR HERE!
+    def read_temperature(self):
+        """Returns temperature in Celsius."""
+        return random.uniform(18.0, 30.0)
+
+
+def make_decision(sensors):
+    """Robot brain: inputs → decision."""
+    camera_view = sensors.read_camera()
+    sound = sensors.read_sound_level()
+    battery = sensors.read_battery()
+    temp = sensors.read_temperature()
+
+    print(f"📷 Camera: {camera_view}")
+    print(f"🔊 Sound: {sound}/100")
+    print(f"🔋 Battery: {battery}%")
+    print(f"🌡️  Temp: {temp:.1f}°C")
+
+    # Decision logic — modify this!
+    if battery < 30:
+        return "⚡ Going to charge station — low battery!"
+    elif camera_view == "a person":
+        return "👋 Waving hello — I see someone!"
+    elif sound > 80:
+        return "🤫 Asking for quiet — too loud!"
+    else:
+        return "😊 All good — standing by."
+
+
+sensors = SensorSimulator()
+print("=== Robot Sensor Loop (5 readings) ===\n")
+for i in range(5):
+    print(f"--- Reading {i+1} ---")
+    action = make_decision(sensors)
+    print(f"🤖 Decision: {action}\n")
+    time.sleep(0.5)</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What's the difference between data and information?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 Could a robot with only one sensor still be useful? Give an example.</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What sensors do YOU have? (Eyes, ears, skin, nose, tongue...)</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 The input→process→output model is the core of ALL computing, not just robotics. It applies to apps, websites, and AI systems too.</p>
+    </div>
+  </section>
+</LessonLayout>
