@@ -1,7 +1,6 @@
 """MockController — simulates Reachy Mini without physical hardware."""
 import asyncio
-import time
-from typing import Optional, Callable, Awaitable
+from typing import Callable, Awaitable
 from .robot_controller import RobotController, RobotState
 from .behaviors import BEHAVIORS_BY_ID, Behavior
 
