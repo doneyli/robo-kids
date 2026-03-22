@@ -1,0 +1,110 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Build & Test"
+  track="young-builders"
+  week={11}
+  phase="Phase 4: Capstone"
+  duration="60 min"
+  emoji="🔨"
+  objective="Implement your capstone project with iteration and debugging"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      You will implement your planned project, practice iterative development (build → test → improve), and prepare for the demo.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Sprint 1: Core Feature (20 min)</h3><p class="text-gray-600">Build the most important part first. Get ONE thing working end-to-end. Don't try to build everything at once.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Test & Fix (15 min)</h3><p class="text-gray-600">Test your core feature. What breaks? Use the debug skills from Week 2 to find and fix issues systematically.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Sprint 2: Polish (15 min)</h3><p class="text-gray-600">Add secondary features. Improve responses. Make it more interesting to watch.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Demo Prep (10 min)</h3><p class="text-gray-600">Run through your demo once. What will you say? What will Reachy do? Practice the "story" of your project.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Starter Template</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># my_project.py — Week 11: Young Builders Capstone
+# YOUR PROJECT NAME:
+# WHAT IT DOES:
+import time
+
+class ReachyMock:
+    def say(self, msg): print(f"🔊 {msg}"); time.sleep(0.5)
+    def wave(self, arm="right", times=1):
+        for _ in range(times): print(f"👋 *{arm} arm wave*"); time.sleep(0.4)
+    def set_emotion(self, e): print(f"😊 *{e}*"); time.sleep(0.3)
+    def move_head(self, yaw=0, pitch=0): print(f"👀 head yaw={yaw} pitch={pitch}"); time.sleep(0.4)
+    def move_arm(self, arm, angle): print(f"🦾 {arm} arm to {angle}°"); time.sleep(0.5)
+    def go_to_rest(self): print("😌 *rest position*"); time.sleep(0.8)
+
+try:
+    from reachy_mini import ReachyMini
+    robot = ReachyMini()
+    print("✅ Connected to Reachy!")
+except Exception:
+    robot = ReachyMock()
+    print("🎮 Simulator mode")
+
+
+# ============================================================
+# YOUR CODE GOES HERE
+# Build the functions for your project
+
+def setup():
+    """Run once at the start."""
+    robot.say("Starting up my project!")
+    robot.set_emotion("happy")
+
+def main_loop():
+    """Main project logic — called repeatedly or once."""
+    # Replace this with YOUR project code!
+    robot.say("Hello! I am doing my project.")
+    robot.wave()
+    robot.say("This is where my cool feature goes!")
+
+def teardown():
+    """Clean up at the end."""
+    robot.say("Project complete! Thanks for watching!")
+    robot.go_to_rest()
+
+
+# Run the project
+setup()
+main_loop()
+teardown()</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What was harder than expected? Easier?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 If you had 3 more hours, what would you add?</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 Resist the urge to help too much. Letting your child struggle productively (not frustratedly) builds resilience and real problem-solving skill.</p>
+      <p class="mt-2">💡 If totally stuck: help them find ONE answer, then step back. Teach fishing, not just fish.</p>
+    </div>
+  </section>
+</LessonLayout>

@@ -1,0 +1,64 @@
+---
+import Base from './Base.astro';
+
+export interface Props {
+  title: string;
+  track: 'little-explorers' | 'young-builders';
+  week: number;
+  phase: string;
+  duration: string;
+  objective: string;
+  emoji: string;
+}
+
+const { title, track, week, phase, duration, objective, emoji } = Astro.props;
+const isExplorer = track === 'little-explorers';
+const trackLabel = isExplorer ? 'Little Explorers' : 'Young Builders';
+const trackHref = `/${track}`;
+const accent = isExplorer ? 'explorer' : 'builder';
+const bg = isExplorer ? 'bg-explorer-50 border-explorer-200' : 'bg-builder-50 border-builder-200';
+const badge = isExplorer ? 'bg-explorer-100 text-explorer-700' : 'bg-builder-100 text-builder-700';
+---
+<Base title={`Week ${week}: ${title}`}>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="no-print text-sm text-gray-500 mb-6 flex items-center gap-2">
+      <a href="/" class="hover:underline">Home</a>
+      <span>/</span>
+      <a href={trackHref} class="hover:underline">{trackLabel}</a>
+      <span>/</span>
+      <span class="text-gray-700 font-medium">Week {week}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class={`rounded-2xl border-2 p-6 mb-8 ${bg}`}>
+      <div class="flex items-start gap-4">
+        <span class="text-5xl">{emoji}</span>
+        <div class="flex-1">
+          <div class="flex flex-wrap gap-2 mb-2">
+            <span class={`text-xs font-bold px-2 py-1 rounded-full ${badge}`}>{trackLabel}</span>
+            <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-700">Week {week}</span>
+            <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-700">{phase}</span>
+            <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-700">⏱ {duration}</span>
+          </div>
+          <h1 class="text-2xl font-extrabold text-gray-900 mb-2">{title}</h1>
+          <p class="text-gray-700 font-medium">{objective}</p>
+        </div>
+      </div>
+      <button onclick="window.print()" class={`no-print mt-4 text-sm font-semibold px-4 py-2 rounded-lg border-2 border-current ${isExplorer ? 'text-explorer-700 hover:bg-explorer-100' : 'text-builder-700 hover:bg-builder-100'} transition-colors`}>
+        🖨️ Print Lesson
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="lesson-content prose prose-lg max-w-none">
+      <slot />
+    </div>
+
+    <!-- Nav buttons -->
+    <div class="no-print mt-10 flex justify-between">
+      {week > 1 && <a href={`/${track}/week-${String(week-1).padStart(2,'0')}`} class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 font-semibold text-gray-700">← Week {week-1}</a>}
+      {week < 12 && <a href={`/${track}/week-${String(week+1).padStart(2,'0')}`} class="ml-auto px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-900 text-white font-semibold">Week {week+1} →</a>}
+    </div>
+  </div>
+</Base>

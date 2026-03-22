@@ -1,0 +1,163 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Voice & Conversation"
+  track="young-builders"
+  week={8}
+  phase="Phase 3: AI Projects"
+  duration="60 min"
+  emoji="🎤"
+  objective="Build a voice interface for Reachy using Python"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      You will build a conversational interface for Reachy — understanding how voice assistants work: transcription → intent → response → action.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📚 How Voice Assistants Work</h2>
+    <div class="flex flex-wrap gap-2 items-center text-sm">
+      <div class="bg-cyan-100 rounded-lg px-3 py-2 font-semibold">🎤 Audio</div>
+      <span class="text-gray-400">→</span>
+      <div class="bg-cyan-100 rounded-lg px-3 py-2 font-semibold">📝 Transcription</div>
+      <span class="text-gray-400">→</span>
+      <div class="bg-cyan-100 rounded-lg px-3 py-2 font-semibold">🧠 Intent</div>
+      <span class="text-gray-400">→</span>
+      <div class="bg-cyan-100 rounded-lg px-3 py-2 font-semibold">💬 Response</div>
+      <span class="text-gray-400">→</span>
+      <div class="bg-cyan-100 rounded-lg px-3 py-2 font-semibold">🤖 Action</div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Design the Conversation (15 min)</h3><p class="text-gray-600">On paper: write 8 things someone might say to Reachy. For each, write what Reachy should do. This is your "intent map."</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Build the Intent Classifier (25 min)</h3><p class="text-gray-600">Run and extend the code below. Add 4 new intents from your list. Test it by typing different phrases.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Interactive Chat (15 min)</h3><p class="text-gray-600">Enable the interactive loop at the bottom. Have a real conversation with Reachy! What surprises it?</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Reflect (5 min)</h3><p class="text-gray-600">How is this different from a real AI like Siri? What would make it smarter?</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Code Snippet</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># voice_interface.py — Week 8: Young Builders
+import time
+
+class ReachyMock:
+    def say(self, msg): print(f"🔊 Reachy: {msg}"); time.sleep(0.5)
+    def wave(self): print("👋 *waves*"); time.sleep(0.5)
+    def set_emotion(self, e): print(f"😊 *{e}*"); time.sleep(0.3)
+    def dance(self): print("💃 *dances*"); time.sleep(1)
+    def go_to_rest(self): print("😌 *rests*"); time.sleep(0.5)
+
+try:
+    from reachy_mini import ReachyMini
+    robot = ReachyMini()
+except Exception:
+    robot = ReachyMock()
+
+# INTENT MAP: keywords → (response, action)
+INTENTS = {
+    "hello": {
+        "keywords": ["hello", "hi", "hey", "howdy"],
+        "response": "Hello! Great to see you!",
+        "action": lambda: robot.wave(),
+    },
+    "dance": {
+        "keywords": ["dance", "move", "boogie", "groove"],
+        "response": "Let's dance!",
+        "action": lambda: robot.dance(),
+    },
+    "happy": {
+        "keywords": ["happy", "joy", "excited", "great"],
+        "response": "I'm happy too! 😊",
+        "action": lambda: robot.set_emotion("excited"),
+    },
+    "sad": {
+        "keywords": ["sad", "unhappy", "cry", "upset"],
+        "response": "I'm sorry to hear that. I'm here for you.",
+        "action": lambda: robot.set_emotion("sad"),
+    },
+    "bye": {
+        "keywords": ["bye", "goodbye", "see you", "later"],
+        "response": "Goodbye! Come back soon!",
+        "action": lambda: robot.wave(),
+    },
+    # ADD YOUR INTENTS HERE!
+}
+
+def classify_intent(text):
+    """Find the best matching intent for input text."""
+    text_lower = text.lower()
+    for intent_name, intent_data in INTENTS.items():
+        for keyword in intent_data["keywords"]:
+            if keyword in text_lower:
+                return intent_name, intent_data
+    return None, None
+
+def chat(user_input):
+    """Process user input and generate Reachy's response."""
+    print(f"\n👤 You: {user_input}")
+    intent_name, intent = classify_intent(user_input)
+
+    if intent:
+        print(f"🧠 Intent: {intent_name}")
+        robot.say(intent["response"])
+        intent["action"]()
+    else:
+        robot.set_emotion("curious")
+        robot.say("Hmm, I don't understand that yet. Can you try differently?")
+
+# Test with sample inputs
+test_inputs = [
+    "Hello Reachy!",
+    "Can you dance for me?",
+    "I'm feeling sad today",
+    "Goodbye robot!",
+    "purple elephants fly",  # No matching intent
+]
+
+print("🤖 Testing Voice Interface\n")
+for text in test_inputs:
+    chat(text)
+    time.sleep(0.3)
+
+# Uncomment for interactive mode:
+# print("\n\n💬 Interactive Mode (type 'quit' to stop)")
+# while True:
+#     user = input("\nYou: ")
+#     if user.lower() == 'quit': break
+#     chat(user)</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What's the difference between keyword matching and real AI understanding?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 How would you handle sarcasm? ("Oh great, ANOTHER robot...")</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 Early Siri and Alexa worked exactly like this — keyword matching. Your child is building the same foundation those systems were built on.</p>
+    </div>
+  </section>
+</LessonLayout>

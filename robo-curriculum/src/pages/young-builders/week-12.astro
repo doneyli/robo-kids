@@ -1,0 +1,149 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Demo Day"
+  track="young-builders"
+  week={12}
+  phase="Phase 4: Capstone"
+  duration="60 min"
+  emoji="🚀"
+  objective="Present your capstone project and reflect on the full journey"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      You will present your project to an audience, explain your technical choices, reflect on 12 weeks of learning, and set goals for what comes next.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">🛠️ Materials</h2>
+    <ul class="space-y-2 text-gray-700">
+      <li class="flex items-center gap-2">✅ Your completed project code</li>
+      <li class="flex items-center gap-2">✅ An audience (family, friends — even online!)</li>
+      <li class="flex items-center gap-2">✅ A "slide deck" or poster (optional but impressive!)</li>
+      <li class="flex items-center gap-2">✅ Your notebook from all 12 weeks</li>
+    </ul>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Demo Prep (15 min)</h3><p class="text-gray-600">Practice your 5-minute demo. Structure: (1) What problem does it solve? (2) How does it work? (3) Live demo. (4) What you'd improve. Run through it once alone.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Live Demo (20 min)</h3><p class="text-gray-600">Present to your audience! Answer questions. If something breaks — debug it live, explaining what you're doing. That IS the skill!</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Journey Review (15 min)</h3><p class="text-gray-600">Flip through your notebook. For each phase, share: what was the hardest concept? What clicked? What are you most proud of?</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">What's Next? (10 min)</h3><p class="text-gray-600">Write 3 goals for the next 12 weeks. What will you learn? What will you build? Set the next challenge.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Demo Script Helper</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># demo_day.py — Week 12: Young Builders
+# Run this before your demo to make sure everything works!
+import time
+
+class ReachyMock:
+    def say(self, msg): print(f"🔊 {msg}"); time.sleep(0.5)
+    def wave(self): print("👋 *waves*"); time.sleep(0.5)
+    def set_emotion(self, e): print(f"😊 *{e}*"); time.sleep(0.3)
+    def go_to_rest(self): print("😌 *rest*"); time.sleep(0.5)
+
+try:
+    from reachy_mini import ReachyMini
+    robot = ReachyMini()
+    print("✅ Hardware ready!")
+except Exception:
+    robot = ReachyMock()
+    print("🎮 Simulator ready!")
+
+# Pre-demo system check
+print("\n🔍 Running system check...")
+checks = ["Connection", "Movement", "Voice", "Project code"]
+for check in checks:
+    time.sleep(0.3)
+    print(f"  ✅ {check}: OK")
+
+print("\n🚀 All systems go! Time to demo!\n")
+
+# Intro sequence
+robot.set_emotion("happy")
+robot.wave()
+robot.say("Hello everyone! I'm Reachy.")
+robot.say("Today I'm going to show you what I built with my Young Builder!")
+time.sleep(1)
+robot.say("Here we go!")
+
+# YOUR PROJECT RUNS HERE
+# (run your actual project code)
+print("\n[YOUR PROJECT CODE HERE]\n")
+
+# Outro
+robot.say("That was my project! Thank you for watching!")
+robot.say("I'm a Young Builder, and I built this with Python!")
+robot.wave()
+
+print("\n🏆 Demo complete! You're officially a Young Builder!")</code></pre>
+  </section>
+
+  <section class="lesson-section mb-8 bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-6">
+    <h2 class="text-2xl font-bold text-indigo-700 mb-3">🏆 Young Builder Certificate</h2>
+    <div class="border-4 border-indigo-400 rounded-xl p-6 text-center bg-white">
+      <div class="text-4xl mb-3">🤖⭐🚀</div>
+      <h3 class="text-xl font-extrabold mb-2">Certificate of Excellence</h3>
+      <p class="text-lg mb-2">This certifies that</p>
+      <div class="border-b-2 border-gray-400 w-48 mx-auto mb-2 h-8"></div>
+      <p class="text-lg mb-4">has successfully completed the</p>
+      <p class="text-xl font-bold text-builder-600 mb-2">Young Builders 12-Week Robotics Curriculum</p>
+      <p class="text-gray-600 mb-4">demonstrating mastery of computational thinking, Python programming, and AI concepts with Reachy Mini</p>
+      <div class="text-3xl mt-4">🔧 💻 🤖</div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">🗺️ What's Next?</h2>
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <h3 class="font-bold text-gray-800 mb-2">Go Deeper in Python</h3>
+        <p class="text-sm text-gray-600">Classes, modules, file I/O, APIs. Python is used everywhere!</p>
+      </div>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <h3 class="font-bold text-gray-800 mb-2">Explore ML/AI</h3>
+        <p class="text-sm text-gray-600">Train your own model with scikit-learn or TensorFlow Lite.</p>
+      </div>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <h3 class="font-bold text-gray-800 mb-2">Hardware Hacking</h3>
+        <p class="text-sm text-gray-600">Try Arduino, Raspberry Pi, or build your own robot from parts!</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What concept from these 12 weeks will you use in the real world?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What was the moment you felt most like a "real programmer"?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 What advice would you give to someone just starting Week 1?</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 Your child just completed a structured 12-week engineering curriculum covering algorithms, debugging, sensors, vision, voice interfaces, and a full project. That is genuinely impressive.</p>
+      <p class="mt-2">💡 The best next step: let THEM choose. Follow their curiosity — not a curriculum.</p>
+    </div>
+  </section>
+</LessonLayout>

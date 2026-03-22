@@ -1,0 +1,123 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+---
+<LessonLayout
+  title="Robot Logic & Debugging"
+  track="young-builders"
+  week={2}
+  phase="Phase 1: Computational Thinking"
+  duration="60 min"
+  emoji="🐛"
+  objective="Write and debug simple algorithms — find and fix bugs like a real programmer"
+>
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-builder-700 mb-3">🎯 Learning Objective</h2>
+    <p class="bg-builder-50 border-l-4 border-builder-400 p-4 rounded-r-xl text-gray-700">
+      You will intentionally write buggy code, then learn systematic debugging techniques to fix it. Bugs are normal — debugging is a superpower.
+    </p>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📚 Key Concepts</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+        <h3 class="font-bold text-red-700">🐛 Bug Types</h3>
+        <ul class="text-sm text-gray-600 mt-2 space-y-1">
+          <li><strong>Syntax error:</strong> code isn't valid Python</li>
+          <li><strong>Logic error:</strong> code runs but gives wrong answer</li>
+          <li><strong>Runtime error:</strong> code crashes while running</li>
+        </ul>
+      </div>
+      <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+        <h3 class="font-bold text-green-700">🔍 Debug Steps</h3>
+        <ol class="text-sm text-gray-600 mt-2 space-y-1 list-decimal list-inside">
+          <li>Read the error message carefully</li>
+          <li>Find the line number mentioned</li>
+          <li>Add print() statements</li>
+          <li>Test with simple inputs</li>
+          <li>Fix one thing at a time</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">📋 Activity Steps</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">1</span>
+        <div><h3 class="font-bold">Buggy Algorithm Relay (15 min)</h3><p class="text-gray-600">On paper, write instructions for making a cup of tea — but include 3 deliberate mistakes. Swap with a parent. Can they find the bugs?</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">2</span>
+        <div><h3 class="font-bold">Bug Hunt in Python (25 min)</h3><p class="text-gray-600">The code below has 5 bugs hidden in it. Find and fix them all! Use print() to investigate what's happening.</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">3</span>
+        <div><h3 class="font-bold">Write Your Own Buggy Code (10 min)</h3><p class="text-gray-600">Deliberately write code with 3 bugs. Swap with your parent. Can they debug it?</p></div>
+      </div>
+      <div class="flex gap-4 items-start">
+        <span class="w-8 h-8 rounded-full bg-builder-500 text-white font-bold flex items-center justify-center flex-shrink-0">4</span>
+        <div><h3 class="font-bold">Debug Journal (10 min)</h3><p class="text-gray-600">In your notebook: record the 5 bugs you found. For each: what type was it? How did you find it?</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💻 Code Snippet — Find the 5 Bugs!</h2>
+    <pre is:raw class="bg-gray-900 text-green-300 rounded-xl p-5 overflow-x-auto text-sm leading-relaxed"><code># buggy_robot.py — Week 2: Young Builders
+# This code has 5 bugs! Find them all.
+# Hint: look at types, logic, and syntax
+
+def robot_greet(name):
+    # Bug 1: something wrong with this string
+    message = "Hello " + name + "! I am Reachy.
+    return message
+
+def count_down(start):
+    # Bug 2: this loop direction is wrong
+    for i in range(start, 10):
+        print(f"Countdown: {i}")
+    print("Blast off!")
+
+def check_battery(level):
+    # Bug 3: logic is backwards
+    if level < 20:
+        print("Battery is fine!")
+    else:
+        print("WARNING: Battery low!")
+
+def add_numbers(a, b):
+    # Bug 4: wrong operation
+    result = a - b
+    return result
+
+# Bug 5: this function call has wrong argument type
+total = add_numbers("5", 3)
+print(f"Total: {total}")
+
+count_down(5)
+check_battery(15)
+print(robot_greet("Builder"))</code></pre>
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 mt-3">
+      <p class="text-sm font-semibold text-green-700">✅ Spoiler (try before reading!): Bug 1: missing closing quote. Bug 2: range should go DOWN not up (use range(start, 0, -1)). Bug 3: logic inverted, &lt; 20 means LOW. Bug 4: should be + not -. Bug 5: "5" is a string, needs to be 5.</p>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">💬 Reflection Questions</h2>
+    <div class="space-y-3">
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 Which bug was hardest to find? Why?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 How is debugging code similar to fixing a mistake in a recipe?</p></div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4"><p class="font-semibold text-blue-800">💭 Professional programmers spend 50% of their time debugging. Does that surprise you?</p></div>
+    </div>
+  </section>
+
+  <section class="lesson-section mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3">👪 Parent Tips</h2>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-gray-700">
+      <p>💡 Encourage your child to READ the error message before guessing. Python's error messages are actually quite helpful once you know how to read them.</p>
+      <p class="mt-2">💡 Normalize bugs: "Every programmer writes bugs. The skill is finding them."</p>
+    </div>
+  </section>
+</LessonLayout>

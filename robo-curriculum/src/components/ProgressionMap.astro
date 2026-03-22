@@ -1,0 +1,45 @@
+---
+export interface Props {
+  track: 'little-explorers' | 'young-builders';
+  currentWeek?: number;
+}
+const { track, currentWeek } = Astro.props;
+const isExplorer = track === 'little-explorers';
+
+const phases = isExplorer ? [
+  { name: 'Unplugged', weeks: [1,2,3], color: 'bg-yellow-400', emoji: '🎮' },
+  { name: 'Meet Reachy', weeks: [4,5,6], color: 'bg-orange-400', emoji: '🤖' },
+  { name: 'Creative Play', weeks: [7,8,9], color: 'bg-pink-400', emoji: '🎨' },
+  { name: 'Mini Projects', weeks: [10,11,12], color: 'bg-red-400', emoji: '🏆' },
+] : [
+  { name: 'Comp Thinking', weeks: [1,2,3], color: 'bg-cyan-400', emoji: '🧠' },
+  { name: 'Reachy Basics', weeks: [4,5,6], color: 'bg-blue-400', emoji: '🤖' },
+  { name: 'AI Projects', weeks: [7,8,9], color: 'bg-violet-400', emoji: '🤖' },
+  { name: 'Capstone', weeks: [10,11,12], color: 'bg-indigo-500', emoji: '🚀' },
+];
+---
+<div class="my-8">
+  <h3 class="text-lg font-bold mb-4 text-gray-700">Concept Progression</h3>
+  <div class="grid grid-cols-4 gap-2">
+    {phases.map(phase => (
+      <div class="rounded-xl overflow-hidden border border-gray-200">
+        <div class={`${phase.color} px-3 py-2 text-center`}>
+          <div class="text-xl">{phase.emoji}</div>
+          <div class="text-xs font-bold text-white">{phase.name}</div>
+        </div>
+        <div class="bg-white p-2 flex flex-col gap-1">
+          {phase.weeks.map(w => (
+            <a
+              href={`/${track}/week-${String(w).padStart(2,'0')}`}
+              class={`block text-center text-xs py-1 px-2 rounded font-semibold transition-colors ${
+                currentWeek === w
+                  ? 'bg-gray-800 text-white'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              }`}
+            >Week {w}</a>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
