@@ -4,7 +4,7 @@
 Family robotics education project. Three parallel explorations of how to teach robotics to kids ages 4 and 8 using a Reachy Mini robot.
 
 ## Critical Constraints
-- **Simulator/mock-first**: Reachy Mini hardware is NOT set up yet. All code MUST work without physical hardware. Use mock/simulator mode for all robot interactions.
+- **Hardware available**: Reachy Mini is physically set up. Code uses try/except to connect to real hardware first, with mock/simulator fallback (useful when robot is charging or offline). All code must still work in simulator mode.
 - **Age-appropriate content**: Two distinct tracks — age 4 (play-based, no reading required, big buttons, voice) and age 8 (structured learning, visual programming, light Python exposure).
 - **Session length**: Activities designed for 30 min (age 4) or 60 min (age 8) sessions.
 
