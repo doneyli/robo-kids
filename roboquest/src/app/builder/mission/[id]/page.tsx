@@ -224,8 +224,8 @@ function DebugMission({ activity, onComplete }: { activity: DebugActivity; onCom
                 {cmd.params?.text ? `: "${cmd.params.text}"` : ''}
               </span>
               <div className="flex flex-col gap-1">
-                <button onClick={() => moveUp(i)} disabled={i === 0} className="text-xs font-black text-blue-500 disabled:opacity-30 min-h-[24px]">▲</button>
-                <button onClick={() => moveDown(i)} disabled={i === order.length - 1} className="text-xs font-black text-blue-500 disabled:opacity-30 min-h-[24px]">▼</button>
+                <button onClick={() => moveUp(i)} disabled={i === 0} className="text-xs font-black text-blue-500 disabled:opacity-30 min-h-[48px] min-w-[48px] flex items-center justify-center">▲</button>
+                <button onClick={() => moveDown(i)} disabled={i === order.length - 1} className="text-xs font-black text-blue-500 disabled:opacity-30 min-h-[48px] min-w-[48px] flex items-center justify-center">▼</button>
               </div>
             </div>
           );

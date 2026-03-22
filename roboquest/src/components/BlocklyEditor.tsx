@@ -176,7 +176,7 @@ const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>(
         const allBlockTypes = [
           'robot_wake_up', 'robot_wave', 'robot_look', 'robot_speak',
           'robot_express', 'robot_dance', 'robot_nod', 'robot_blink',
-          'controls_repeat',
+          'controls_repeat', 'controls_if',
         ];
         const blockTypes = availableBlocks.filter(b => allBlockTypes.includes(b));
         const toolboxXml = `<xml>
