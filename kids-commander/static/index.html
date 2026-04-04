@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Reachy Commander 🤖</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="header-left">
+        <span class="app-title">🤖 Reachy Commander</span>
+      </div>
+      <div class="mode-switcher" id="modeSwitcher">
+        <button class="mode-btn active" id="btnPlay" onclick="setMode('play')">
+          🎮 <span class="mode-label">Play</span>
+        </button>
+        <button class="mode-btn" id="btnCode" onclick="setMode('code')">
+          💻 <span class="mode-label">Code</span>
+        </button>
+      </div>
+      <div class="status-dot" id="statusDot" title="Connection status"></div>
+    </header>
+
+    <main class="main-layout">
+      <!-- LEFT: Robot Avatar -->
+      <aside class="avatar-panel">
+        <div class="avatar-container" id="avatarContainer">
+          <div class="robot-avatar" id="robotAvatar">
+            <div class="robot-head" id="robotHead">
+              <div class="robot-eyes">
+                <div class="robot-eye left" id="eyeLeft">
+                  <div class="robot-pupil" id="pupilLeft"></div>
+                </div>
+                <div class="robot-eye right" id="eyeRight">
+                  <div class="robot-pupil" id="pupilRight"></div>
+                </div>
+              </div>
+              <div class="robot-mouth" id="robotMouth"></div>
+              <div class="robot-antennas">
+                <div class="antenna left" id="antennaLeft"></div>
+                <div class="antenna right" id="antennaRight"></div>
+              </div>
+            </div>
+            <div class="robot-body" id="robotBody">
+              <div class="robot-screen" id="robotScreen">
+                <span class="screen-text" id="screenText">Hi!</span>
+              </div>
+            </div>
+          </div>
+          <div class="avatar-speech" id="avatarSpeech"></div>
+          <div class="avatar-status" id="avatarStatus">💤 Waiting...</div>
+        </div>
+      </aside>
+
+      <!-- RIGHT: Mode content -->
+      <section class="content-panel">
+        <!-- PLAY MODE -->
+        <div id="playMode" class="mode-content active">
+          <div class="play-tabs">
+            <button class="play-tab active" onclick="setPlayTab('buttons')">🎮 Buttons</button>
+            <button class="play-tab" onclick="setPlayTab('hunt')">🔍 Hunt</button>
+            <button class="play-tab" onclick="setPlayTab('missions')">🏆 Missions</button>
+          </div>
+
+          <!-- Behavior buttons -->
+          <div id="tabButtons" class="play-tab-content active">
+            <div class="behavior-grid" id="behaviorGrid">
+              <!-- populated by JS -->
+            </div>
+            <div class="voice-section">
+              <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+                🎤 <span id="voiceBtnText">Talk to Reachy</span>
+              </button>
+              <div class="voice-hint" id="voiceHint">Say: "wave", "dance", "hello"...</div>
+              <div class="voice-result" id="voiceResult"></div>
+            </div>
+          </div>
+
+          <!-- Scavenger Hunt -->
+          <div id="tabHunt" class="play-tab-content">
+            <div class="hunt-card" id="huntCard">
+              <div class="hunt-emoji" id="huntEmoji">🎯</div>
+              <div class="hunt-prompt" id="huntPrompt">Press Start to begin!</div>
+              <button class="big-btn green" onclick="startHunt()">▶ Start Hunt!</button>
+              <button class="big-btn orange" id="huntFoundBtn" onclick="huntFound()" style="display:none">✅ Found it!</button>
+            </div>
+            <div class="hunt-score">
+              ⭐ Score: <span id="huntScore">0</span>
+            </div>
+          </div>
+
+          <!-- Mission Cards -->
+          <div id="tabMissions" class="play-tab-content">
+            <div class="missions-grid" id="missionsGrid">
+              <!-- populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- CODE MODE -->
+        <div id="codeMode" class="mode-content">
+          <div class="code-layout">
+            <div class="palette-panel">
+              <h3 class="panel-title">🧩 Behaviors</h3>
+              <div class="palette-grid" id="paletteGrid">
+                <!-- populated by JS -->
+              </div>
+            </div>
+            <div class="timeline-panel">
+              <h3 class="panel-title">📋 Sequence</h3>
+              <div class="timeline-area" id="timelineArea"
+                   ondragover="event.preventDefault()"
+                   ondrop="dropOnTimeline(event)">
+                <div class="timeline-empty" id="timelineEmpty">
+                  👈 Drag behaviors here to build a sequence
+                </div>
+                <div class="timeline-items" id="timelineItems"></div>
+              </div>
+              <div class="timeline-controls">
+                <button class="ctrl-btn play" onclick="playSequence()" id="playSeqBtn">▶ Play</button>
+                <button class="ctrl-btn stop" onclick="stopSequence()">⏹ Stop</button>
+                <button class="ctrl-btn clear" onclick="clearTimeline()">🗑 Clear</button>
+                <button class="ctrl-btn save" onclick="showSaveDialog()">💾 Save</button>
+              </div>
+              <!-- Challenge mode -->
+              <div class="challenge-section">
+                <div class="challenge-header" onclick="toggleChallenge()">
+                  🏅 Challenge Mode <span id="challengeArrow">▼</span>
+                </div>
+                <div class="challenge-body" id="challengeBody" style="display:none">
+                  <div class="challenge-card" id="challengeCard">
+                    <div class="challenge-text" id="challengeText">Loading challenge…</div>
+                    <div class="challenge-limit" id="challengeLimit"></div>
+                    <button class="ctrl-btn play" onclick="checkChallenge()">✅ Check</button>
+                    <button class="ctrl-btn clear" onclick="nextChallenge()">⏭ Next</button>
+                  </div>
+                  <div class="challenge-result" id="challengeResult"></div>
+                </div>
+              </div>
+            </div>
+            <div class="code-panel">
+              <h3 class="panel-title">🐍 Python</h3>
+              <pre class="code-preview" id="codePreview"># Your sequence code will appear here
+# as you build it above!</pre>
+              <div class="saved-seqs-section">
+                <h4>💾 Saved</h4>
+                <div id="savedSeqsList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Save dialog -->
+    <div class="modal-overlay" id="saveModal" style="display:none" onclick="closeSaveModal()">
+      <div class="modal-box" onclick="event.stopPropagation()">
+        <h3>💾 Save Sequence</h3>
+        <label>Name your sequence:</label>
+        <input type="text" id="saveName" placeholder="My cool sequence" class="modal-input" />
+        <label>Pick an emoji:</label>
+        <div class="emoji-picker" id="emojiPicker"></div>
+        <div class="modal-btns">
+          <button class="ctrl-btn play" onclick="confirmSave()">Save</button>
+          <button class="ctrl-btn clear" onclick="closeSaveModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
