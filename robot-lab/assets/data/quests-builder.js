@@ -744,7 +744,7 @@
       how: 'One of you mimes while the other speaks the words from behind. First try to sync it well, then deliberately go late. Film both on a phone and watch back. The late one is unbearable, and she will feel the reason before she can name it.'
     },
     wonder: 'Which is worse — sound too early, or too late?',
-    milestone: { strand: 'making', badge: 'choreographer-b', title: 'Scene Director' },
+    milestone: { strand: 'sequences', badge: 'choreographer-b', title: 'Scene Director' },
     dadNote: 'Late is much worse, and the SDK agrees: playMove takes audioLeadMs defaulting to -100, so audio starts 100 ms *before* the motion. Perception is asymmetric and the API is built around that fact.'
   });
 
@@ -825,7 +825,7 @@
       how: 'Give her a bead pattern — red red blue, red red blue, eight times. She must write instructions in as few words as possible for you to reproduce it. Score by word count. She will invent loop notation on her own, and probably nesting too.'
     },
     wonder: 'Can a loop go on forever?',
-    milestone: { strand: 'logic', badge: 'loop-writer', title: 'Loop Writer' },
+    milestone: { strand: 'sequences', badge: 'loop-writer', title: 'Loop Writer' },
     dadNote: 'It can, and that is both a bug and a feature — every robot control loop is an intentional infinite loop with an escape condition. Which is why safe shutdown handling matters; the SDK ships installShutdownHandler for exactly this.'
   });
 

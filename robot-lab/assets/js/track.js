@@ -46,9 +46,14 @@
       h1.appendChild(document.createTextNode(trackMeta.emoji + '  ' +
         (kid.name && kid.name !== kidId ? kid.name + "'s Lab" : trackMeta.label)));
       head.appendChild(h1);
+      // Cadence rather than a streak. A streak only ever punishes: every
+      // December and every bout of flu resets it to zero and puts that on the
+      // dashboard. "5 of the last 8 weekends" is truer and recovers by itself.
+      var pace = stats.cadence.weeksActive > 0
+        ? ' · ' + stats.cadence.weeksActive + ' of the last ' + stats.cadence.ofWeeks + ' weeks'
+        : '';
       head.appendChild(el('p', 'muted', stats.completed + ' of ' + stats.total +
-        ' quests finished · ' + stats.badges + ' badges' +
-        (stats.streakWeeks > 1 ? ' · ' + stats.streakWeeks + ' weeks in a row' : '')));
+        ' quests finished · ' + stats.badges + ' badges' + pace));
       host.appendChild(head);
 
       // Next up — the single most useful thing on the page.

@@ -233,8 +233,14 @@ GET  /api/daemon/status          is the backend running?</pre>
       box.style.marginBottom = '26px';
       box.appendChild(el('h3', null, meta.emoji + '  ' +
         (kid.name && kid.name !== t ? kid.name : meta.label) + ' — ' +
-        stats.completed + '/' + stats.total + ' quests, ' + stats.badges + ' badges' +
-        (stats.streakWeeks > 1 ? ', ' + stats.streakWeeks + ' weeks running' : '')));
+        stats.completed + '/' + stats.total + ' quests, ' + stats.badges + ' badges'));
+      // Cadence and years-active, not a streak. Over a multi-year project a
+      // streak counter is a punishment meter; these two are not.
+      var c = stats.cadence;
+      box.appendChild(el('p', 'small muted',
+        'Pace: ' + c.weeksActive + ' active week' + (c.weeksActive === 1 ? '' : 's') +
+        ' of the last ' + c.ofWeeks + ' (' + c.quests + ' quests, ' + c.perWeek + '/week)' +
+        (stats.yearsActive >= 0.2 ? ' · going ' + stats.yearsActive + ' years' : '')));
 
       var strand = el('div', 'strand');
       Progress.STRANDS.forEach(function (s) {

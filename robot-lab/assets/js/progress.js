@@ -198,8 +198,46 @@
       total: mine.length,
       badges: Object.keys(k.badges).length,
       seasons: seasons,
-      streakWeeks: this._streak(k)
+      streakWeeks: this._streak(k),
+      cadence: this.cadence(kidId),
+      yearsActive: this.yearsActive(kidId)
     };
+  };
+
+  /**
+   * Sessions in the last 8 weeks, and the trailing average.
+   *
+   * A streak is the wrong headline metric for something meant to last years. It
+   * only ever punishes: every December, every bout of flu, every deliberately
+   * fallow term resets it to zero and puts that on the dashboard. Cadence says
+   * "you did five of the last eight weekends", which is both truer and kinder,
+   * and it recovers on its own.
+   */
+  Progress.prototype.cadence = function (kidId, weeks) {
+    var k = this.kid(kidId);
+    var span = weeks || 8;
+    var cutoff = new Date(today() + 'T00:00:00Z').getTime() - span * 7 * 86400000;
+    var recent = Object.keys(k.completed).filter(function (q) {
+      return new Date(k.completed[q] + 'T00:00:00Z').getTime() >= cutoff;
+    });
+    var seenWeeks = {};
+    recent.forEach(function (q) { seenWeeks[weekKey(k.completed[q])] = true; });
+    return {
+      quests: recent.length,
+      weeksActive: Object.keys(seenWeeks).length,
+      ofWeeks: span,
+      perWeek: +(recent.length / span).toFixed(2)
+    };
+  };
+
+  /** Only ever goes up. The number a child is actually proud of after four years. */
+  Progress.prototype.yearsActive = function (kidId) {
+    var k = this.kid(kidId);
+    var dates = Object.keys(k.completed).map(function (q) { return k.completed[q]; }).sort();
+    if (!dates.length) return 0;
+    var first = new Date(dates[0] + 'T00:00:00Z').getTime();
+    var last = new Date(today() + 'T00:00:00Z').getTime();
+    return +((last - first) / (365.25 * 86400000)).toFixed(1);
   };
 
   /**
