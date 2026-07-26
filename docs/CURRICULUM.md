@@ -12,30 +12,48 @@ Numbers computed from the quest data, not estimated. Regenerate with the snippet
 | Total session time | **18.0 h** | **36.0 h** | **54 h** |
 | Of which off-screen | 6.9 h (38%) | 13.9 h (39%) | ~39% |
 | Implied screen time | 11.1 h | 22.1 h | 33 h |
-| At 1 quest/week | 36 weeks | 36 weeks | **~8.3 months** |
+| Nominal: 1 quest/session | 36 sessions | 36 sessions | |
 | Seasons | 6 × 6 quests | 6 × 6 quests | |
-
-**Roughly two school terms.** Starting July 2026, both girls finish around **April 2027**, when they
-will be 5 and 9.
 
 The unplugged share is deliberate and roughly 40% of every session. Marina Bers' KIBO work is the
 reason: the off-screen half is not filler, it is where the concept actually lands. A session that
-skips it is half a session.
+skips it is half a session. Per-quest the off-screen block runs 8–20 min (Explorer, median 12) and
+15–30 min (Builder, median 25); no quest's unplugged half crowds out its own session.
 
-## You have more time than this uses
+## How long it really takes
 
-You said "a couple of hours a week with each" — call it 4 h/week. The curriculum asks for 1.5 h.
-That is on purpose for the 4-year-old and optional for the 8-year-old:
+**36 sessions is not 36 weeks.** A realistic family year is about 30 sessions, not 52 — illness,
+travel, birthday parties, a weekend where nobody feels like it. And some quests are not one session:
+`b5-5` (find three bugs by halving) and `b6-6` (write and ship an app) are two or three each, and a
+4-year-old will ask to repeat a favourite, which at four is learning rather than stalling.
 
-- **Age 4: attention is the constraint, not the clock.** 30 minutes of structured activity is
-  already at the edge. Do not stretch the quest. Spend the surplus on free play with the robot, a
-  second run of the unplugged game, or letting her repeat a favourite quest — repetition at 4 is
-  learning, not stalling.
-- **Age 8: you can run two quests a week if she is hungry for it.** That halves the calendar to
-  ~18 weeks (~4 months) and she finishes Builder around **December 2026**, aged 8.
+| | Nominal | Realistic |
+|---|---|---|
+| Little Explorer, 36 quests | 8 months | **14–18 months** → finishes around age 5½–6 |
+| Young Builder, 36 quests | 8 months | **15–21 months** → finishes around age 9½–10 |
 
-That second option is the reason the progression below matters sooner than you might think. At two
-quests a week, the cliff arrives in four months, not eight.
+So: the current curriculum covers roughly **the next year and a half**, not the next nine months.
+That is the honest number, and it is the one the tier plan below is paced against.
+
+## About the two hours
+
+You said "a couple of hours a week with each" — nominally 4 h/week, against a nominal 90 min of
+curriculum. That surplus is smaller than it looks. Add setup, getting the robot awake, the
+transition into and out of the unplugged block, and one child wanting to show the other what she
+did, and a 30-minute Explorer session is a 45–60 minute event. Two children back to back is
+realistically **2 to 2½ hours**, which is roughly what you budgeted.
+
+Two things follow:
+
+- **For the 4-year-old, do not stretch the quest.** 30 minutes of structured activity is at the edge
+  of a four-year-old's attention. Spend any surplus on free play with the robot or a second run of
+  the unplugged game — not on a second quest.
+- **For the 8-year-old, a second quest is available** when she is hungry for it, and that is the
+  right lever. It shortens Builder toward the 15-month end rather than the 21-month end.
+
+Plan for the gap-tolerant case: nothing in the app expires, nothing is scheduled, and the streak
+counter is weeks-with-any-activity rather than consecutive days precisely so that a six-week fallow
+stretch costs nothing but time.
 
 ## The cliff, stated plainly
 
