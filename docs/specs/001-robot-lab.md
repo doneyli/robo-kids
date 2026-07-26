@@ -1,8 +1,19 @@
 # Robot Lab — a growing robotics curriculum with live Reachy control
 
 **Issue:** [#7](https://github.com/doneyli/robo-kids/issues/7)
-**Status:** approved, implementing
+**Status:** shipped — `ca5fa84` (feature) and `f25b2e4` (audit fixes)
 **Date:** 2026-07-26
+
+> **Reconciled with what shipped.** Two things changed during implementation and are corrected
+> below rather than left to rot: `blocks.js` never existed (the sequence builder is one of eight
+> activity kinds inside `quest-ui.js`), and the quests live in `quests-explorer.js` /
+> `quests-builder.js` rather than a single `curriculum.js`. Removal of the two superseded
+> explorations was declined, so they are archived in place.
+>
+> Follow-on documents, written after the fact and now the better reference:
+> [ADR 0001](../decisions/0001-browser-drives-the-robot-directly.md) (why there is no backend),
+> [CURRICULUM.md](../CURRICULUM.md) (duration and the tier plan),
+> [AUTHORING.md](../AUTHORING.md), [RUNBOOK.md](../RUNBOOK.md).
 
 ## Goal
 
@@ -134,9 +145,16 @@ Safari clearing site data.
 | `robot-lab/assets/js/sim.js` | New on-screen SVG Reachy mirroring every command | Session survives an offline robot |
 | `robot-lab/assets/js/speak.js` | New Web Speech wrapper | Age 4 can't read |
 | `robot-lab/assets/js/progress.js` | New milestone store | Persistence + export |
-| `robot-lab/assets/js/blocks.js` | New tap-to-build sequence programmer | Age 8 authoring |
-| `robot-lab/assets/data/curriculum.js` | New — all 72 quests | Content as data |
-| `robot-lab/assets/data/emotions.js` | New — 81 emotions curated + kid-labelled | Usable emotion picker |
+| `robot-lab/assets/js/actions.js` | New action-string DSL interpreter | Keeps the 72 quests as pure data |
+| `robot-lab/assets/js/quest-ui.js` | New renderer for all 8 activity kinds | One renderer, both tracks |
+| `robot-lab/assets/js/track.js` | New shared track-page controller | Quests addressable by URL |
+| `robot-lab/assets/js/lab.js` | New shared shell — top bar, toasts, badge modal | Common chrome |
+| `robot-lab/assets/data/curriculum.js` | New — seasons, tracks, concept tags, helpers | Structure |
+| `robot-lab/assets/data/quests-explorer.js` | New — 36 quests, ages 4–6 | Content as data |
+| `robot-lab/assets/data/quests-builder.js` | New — 36 quests, ages 7–10 | Content as data |
+| `robot-lab/assets/data/emotions.js` | New — 81 emotions curated + intensity-banded | Usable picker; gates the 20 "strong" ones away from age 4 |
+| `robot-lab/test/harness.mjs` | New — loads classic scripts into a `node:vm` sandbox | Testing a no-build app |
+| `robot-lab/tools/live-robot.mjs` | New — opt-in hardware smoke test | Outside `test/` so `node --test` never moves a robot |
 | `robot-lab/assets/css/lab.css` | New shared styling | Tablet-first |
 | `robot-lab/serve.sh` | New one-command LAN server on :4200 | Dad-proof launch |
 | `robot-lab/README.md` | New setup + troubleshooting | Sunday-morning reference |

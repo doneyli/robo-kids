@@ -29,11 +29,6 @@
     var d = doc.createElement('details');
     d.className = 'card card-tight';
     var s = doc.createElement('summary');
-    s.style.cursor = 'pointer';
-    s.style.fontWeight = '750';
-    s.style.minHeight = '44px';
-    s.style.display = 'flex';
-    s.style.alignItems = 'center';
     s.textContent = (emoji ? emoji + '  ' : '') + summaryText;
     d.appendChild(s);
     return d;
