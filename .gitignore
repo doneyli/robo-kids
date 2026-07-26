@@ -1,0 +1,18 @@
+# Agent scratch space. `.claude/memory/` and `.claude/launch.json` ARE tracked
+# deliberately (memory is portable across machines, per 68e1722); everything else
+# under here is per-machine working state and must not be committed. Without
+# these lines a `git add -A` sweeps in Next.js build artifacts from old worktrees.
+.claire/
+.claude/*
+!.claude/memory/
+!.claude/launch.json
+
+# Node / build output, in case a future tier ever needs a toolchain
+node_modules/
+.next/
+dist/
+build/
+.astro/
+
+# macOS
+.DS_Store
