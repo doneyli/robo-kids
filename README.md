@@ -51,6 +51,7 @@ emotions** play, live telemetry reads back, and command latency is 27–100 ms o
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | When something is wrong five minutes before a session |
 | [`docs/decisions/0001-browser-drives-the-robot-directly.md`](docs/decisions/0001-browser-drives-the-robot-directly.md) | **Why there is no backend**, the rejected alternatives, and how to re-verify the CORS finding |
 | [`docs/decisions/0002-tier-progression.md`](docs/decisions/0002-tier-progression.md) | **How it grows from ages 4 to 16** — six themes, six rungs, and why a slot stops being a quest |
+| [`docs/decisions/0003-eyes-and-voice.md`](docs/decisions/0003-eyes-and-voice.md) | **His own voice and camera** — what works today, and why anything touching the mic or camera must run *on the robot* |
 | [`docs/reference/`](docs/reference/) | Snapshots of the robot's API contract, so it survives the robot being off |
 | [`docs/specs/001-robot-lab.md`](docs/specs/001-robot-lab.md) | Original design and acceptance criteria |
 

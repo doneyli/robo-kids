@@ -461,6 +461,63 @@
     });
   };
 
+  /**
+   * Stable filename for a spoken line.
+   *
+   * The robot's SDK has no text-to-speech, but the daemon WILL play a sound file
+   * you upload — and that upload works cross-origin from a browser. So a line of
+   * speech becomes: bake a WAV once on the Mac, upload it, then ask the daemon to
+   * play it. The robot speaks with its own speaker, and there is still no backend
+   * at runtime.
+   *
+   * This hash is the contract between `tools/bake-voice.mjs` (which writes the
+   * files) and `speakOnRobot` (which plays them), so it lives here and both use
+   * it. djb2 — short, deterministic, and good enough to key 24 lines.
+   */
+  RobotLink.voiceFile = function (text) {
+    var s = String(text).trim().replace(/\s+/g, ' ');
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    var slug = s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32);
+    return 'v-' + h.toString(36) + '-' + slug + '.wav';
+  };
+
+  var SOUND_DIR = '/tmp/reachy_mini_sounds/';
+
+  /**
+   * Speak through the ROBOT'S speaker, if this line has been baked and uploaded.
+   * Resolves false when there is nothing to play, so the caller can fall back to
+   * tablet speech rather than the line being silently lost.
+   */
+  RobotLink.prototype.speakOnRobot = function (text) {
+    if (this.status !== 'online' || !this.host) return Promise.resolve(false);
+    var self = this;
+    var file = RobotLink.voiceFile(text);
+
+    function play() {
+      if (self._voiceFiles.indexOf(file) < 0) return false;
+      self.playSound(SOUND_DIR + file);
+      return true;
+    }
+
+    if (this._voiceFiles) return Promise.resolve(play());
+
+    // One listing per session, cached; a miss must not re-request every line.
+    return this._fetch('/api/media/sounds', null, 5000).then(function (r) {
+      self._voiceFiles = (r && r.files) || [];
+      return play();
+    }, function () {
+      self._voiceFiles = [];
+      return false;
+    });
+  };
+
+  /** Forget the cached listing — call after baking new lines. */
+  RobotLink.prototype.refreshVoiceFiles = function () {
+    this._voiceFiles = null;
+    return this.speakOnRobot('');
+  };
+
   RobotLink.prototype.playSound = function (file) {
     var self = this;
     return this._act('sound', { file: file }, function () {

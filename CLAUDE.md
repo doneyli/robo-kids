@@ -93,8 +93,12 @@ agree. The daemon clamps again on arrival. Never send unclamped user input.
 - `innerHTML` is only used for the static SVG in `sim.js`. All data-driven text uses `textContent`.
 - Serve over plain **`http://`** — the robot is HTTP-only, and an `https://` page is blocked from
   talking to it. This is why the app cannot be hosted on GitHub Pages and still drive the robot.
-- Speech: tablet Web Speech API, not the robot. The SDK has no TTS. Safari needs a real user
-  gesture before it will speak, which `speak.js` handles by queueing.
+- Speech has **two channels**, and `say:` prefers the robot. The SDK has no TTS, but the daemon plays
+  uploaded sound files, so `tools/bake-voice.mjs` renders the curriculum's fixed lines with macOS
+  `say` and uploads them; `RobotLink.speakOnRobot()` plays the baked file and falls back to the
+  tablet's Web Speech API for anything unbaked or pitch-varied. Safari needs a real user gesture
+  before it will speak, which `speak.js` handles by queueing. `RobotLink.voiceFile()` is the
+  filename contract between the baker and the player — change it in one place only.
 - Progress lives in `localStorage`; export/import is a first-class feature, not a nicety.
 
 ## Docs map
@@ -106,12 +110,16 @@ agree. The daemon clamps again on arrival. Never send unclamped user input.
 - `docs/decisions/0002-*` — the ages 4–16 tier progression. **Read before adding a track, a tier,
   or a ninth activity kind.** Notably: `milestone.strand` is nearly collinear with `season` and is a
   coverage instrument, not a ladder; and retagging a strand stops being free once a badge is earned.
+- `docs/decisions/0003-*` — the robot's own voice and camera. **Read before attempting anything with
+  the mic or camera.** The daemon has NO frame or audio-in endpoint, and macOS is not supported as a
+  remote WebRTC media client, so capture code must run ON the robot. Speaking is already solved with
+  no backend: `node tools/bake-voice.mjs`.
 - `docs/reference/` — snapshots of the robot's API contract
 
 ## Tests
 
 ```bash
-cd robot-lab && node --test                 # 227 tests, zero deps, no network, ~2s
+cd robot-lab && node --test                 # 226 tests, zero deps, no network, ~2s
 cd robot-lab && node tools/live-robot.mjs   # 18 checks, opt-in: drives the REAL robot
 ```
 

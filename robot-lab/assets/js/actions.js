@@ -136,12 +136,27 @@
           case 'motors': return link.setMotorMode(s.payload).then(function () { return wait(400); });
           case 'volume': return link.setVolume(parseFloat(s.payload));
 
-          case 'say':
-            if (!speaker) return Promise.resolve();
-            return speaker.say(s.payload, {
-              pitch: s.params.pitch ? parseFloat(s.params.pitch) : undefined,
-              rate: s.params.rate ? parseFloat(s.params.rate) : undefined
+          case 'say': {
+            // Prefer the ROBOT'S speaker. A line that has been baked to a WAV and
+            // uploaded plays out of him, which is the whole point — a robot whose
+            // voice comes from the tablet in your hand is not really talking.
+            // Falls back to tablet speech for anything not baked, and for the
+            // pitch/rate variations (quest e4-2 needs a squeaky voice, which a
+            // pre-rendered file cannot give us).
+            var tablet = function () {
+              if (!speaker) return Promise.resolve();
+              return speaker.say(s.payload, {
+                pitch: s.params.pitch ? parseFloat(s.params.pitch) : undefined,
+                rate: s.params.rate ? parseFloat(s.params.rate) : undefined
+              });
+            };
+            if (s.params.pitch || s.params.rate || !link.speakOnRobot) return tablet();
+            return link.speakOnRobot(s.payload).then(function (played) {
+              if (!played) return tablet();
+              // Roughly how long he will be talking, so the next step waits.
+              return wait(600 + String(s.payload).length * 62);
             });
+          }
 
           case 'wait': return wait(parseInt(s.payload, 10) || 0);
           case 'burst': return burst(link, s.payload || 'yaw');

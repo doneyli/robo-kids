@@ -65,6 +65,24 @@ That last one is a *coupled* limit — each axis can be individually legal while
 because of cable routing. Clamping happens client-side so the on-screen robot and the real one
 always agree; the daemon clamps again on arrival.
 
+## Give him his own voice
+
+By default spoken lines come out of the **tablet**. To make them come out of *him*:
+
+```bash
+node tools/bake-voice.mjs
+```
+
+The SDK has no text-to-speech, but the daemon will play any sound file you upload — so this renders
+the curriculum's 16 spoken lines with macOS `say`, uploads them once, and from then on `say:` plays
+through his own speaker with tablet speech as the fallback. No backend, no dependencies.
+
+Re-run it after you add a `say:` line, and after he reboots (the daemon keeps them in `/tmp`).
+`--list` shows what would be baked; `--voice Daniel` picks a different voice.
+
+Anything needing the **camera or microphone** is a bigger job, and the reason is not obvious:
+see [ADR 0003](../docs/decisions/0003-eyes-and-voice.md).
+
 ## No robot? Still works.
 
 If he is charging, asleep, or on another network, `RobotLink` reports `simulated` and every
@@ -157,7 +175,7 @@ Verbs: `wake` `sleep` `stop` `center` `gesture:` `emotion:` `pose:` `motors:` `v
 
 ## Tests
 
-**227 tests, zero dependencies, ~2 seconds.** Node's built-in runner; nothing touches the network
+**226 tests, zero dependencies, ~2 seconds.** Node's built-in runner; nothing touches the network
 or the robot.
 
 ```bash
