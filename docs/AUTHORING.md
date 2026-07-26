@@ -185,6 +185,24 @@ Everything tapped is remembered in order and can be replayed as a whole.
 activity: { kind: 'offline', prompt: 'Time to draw!', checklist: ['Give it a name', /* ... */ ] }
 ```
 
+## Hard constraints on what an activity can do
+
+The first two are not obvious and have already caught out design work:
+
+- **No browser-side camera capture.** `getUserMedia` requires a secure context, and this app must be
+  served over plain `http://` because the daemon has no HTTPS (see
+  [ADR 0001](decisions/0001-browser-drives-the-robot-directly.md)). So a capture activity works only
+  from `localhost` on the Mac, never from the iPad's LAN URL. Anything that needs frames has to move
+  to Python. This is exactly why the Season 3 sensor quests reason *about* the camera through
+  `/api/camera/specs` rather than showing its feed.
+- **No robot video feed remotely either.** The daemon streams over WebRTC, which needs GStreamer on
+  the client and is Linux-only for remote clients today.
+- **No arms, no gripper, no mobility** — a standing prohibition at every tier. Any activity premised
+  on the robot picking something up, navigating a room, or manipulating an object is out of scope.
+  Sanctioned cheap additions: a printed checkerboard (free), a $30 webcam, a micro:bit, a Pi.
+- **Speech comes out of the tablet, not the robot.** The SDK has no text-to-speech. `say:` uses the
+  Web Speech API, and iOS will not speak until a real user gesture has happened.
+
 ## Adding a season or a tier
 
 `CURRICULUM.SEASONS` in `assets/data/curriculum.js` defines the six themes. The six-season shape is

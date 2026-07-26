@@ -91,7 +91,10 @@ agree. The daemon clamps again on arrival. Never send unclamped user input.
 - `docs/CURRICULUM.md` — duration, cadence, and the tier progression plan
 - `docs/AUTHORING.md` — how to add a quest (required fields, 8 activity kinds, action DSL grammar)
 - `docs/RUNBOOK.md` — troubleshooting when the robot will not connect
-- `docs/decisions/` — ADRs for load-bearing choices, including rejected alternatives
+- `docs/decisions/0001-*` — why there is no backend; how to re-verify the CORS finding
+- `docs/decisions/0002-*` — the ages 4–16 tier progression. **Read before adding a track, a tier,
+  or a ninth activity kind.** Notably: `milestone.strand` is nearly collinear with `season` and is a
+  coverage instrument, not a ladder; and retagging a strand stops being free once a badge is earned.
 - `docs/reference/` — snapshots of the robot's API contract
 
 ## Tests

@@ -69,6 +69,9 @@ Two separate gaps, and they are different problems:
 2. **The ceiling gap.** The 8-year-old finishes Builder at 8–9. Builder's last quest already has her
    writing real Python and shipping an app. What does 10, 12, 14 look like?
 
+> **The full decision — the scoring of three independent designs, and what was rejected — is in
+> [ADR 0002 — Tier progression](decisions/0002-tier-progression.md).** What follows is the summary.
+
 ## How it grows — the tier × theme grid
 
 The load-bearing idea: **six themes are permanent, tiers are depth.**
