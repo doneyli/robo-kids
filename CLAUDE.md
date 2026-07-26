@@ -100,8 +100,8 @@ agree. The daemon clamps again on arrival. Never send unclamped user input.
 ## Tests
 
 ```bash
-cd robot-lab && node --test          # zero deps, no network, no robot
-cd robot-lab && node tools/live-robot.mjs   # opt-in: drives the REAL robot
+cd robot-lab && node --test                 # 227 tests, zero deps, no network, ~2s
+cd robot-lab && node tools/live-robot.mjs   # 18 checks, opt-in: drives the REAL robot
 ```
 
 Node's built-in runner; test files are `robot-lab/test/*.test.mjs` and load the app's classic

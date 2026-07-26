@@ -155,12 +155,37 @@ Actions are strings, interpreted by `actions.js`:
 Verbs: `wake` `sleep` `stop` `center` `gesture:` `emotion:` `pose:` `motors:` `volume:` `say:`
 `wait:` `burst:` `repeat:`. Pipe-separate to chain them.
 
-## Checks
+## Tests
 
-No test framework — the data is validated by running it:
+**227 tests, zero dependencies, ~2 seconds.** Node's built-in runner; nothing touches the network
+or the robot.
 
 ```bash
-node --check assets/js/*.js assets/data/*.js
+node --test
 ```
+
+| Suite | Covers |
+|---|---|
+| `test/reachy.test.mjs` | The safety envelope — every limit at, inside and beyond, both signs, plus the coupled head/body-yaw constraint and unit conversion |
+| `test/actions.test.mjs` | The action DSL: parsing, ordering, `repeat:` expansion, and speech |
+| `test/progress.test.mjs` | Idempotent completion, streak/cadence maths, export/import merge, a `localStorage` that throws |
+| `test/curriculum.test.mjs` | Data integrity — fails loudly if a malformed quest is added |
+| `test/integration.test.mjs` | The seams, including a sweep of **every action string in all 72 quests** |
+
+The suite is mutation-tested: widening the pitch limit fails 6 tests, dropping the coupled yaw
+constraint fails 8, and putting a strong-intensity emotion in an age-4 quest fails 2.
+
+`test/harness.mjs` loads the app's classic `<script>` files into a `node:vm` sandbox with a stubbed
+`fetch`, a stubbed `localStorage`, and a pinnable `Date` — that is how a no-build app gets tested
+without inventing a build.
+
+**The hardware smoke test is separate and opt-in**, because it moves a real robot:
+
+```bash
+node tools/live-robot.mjs
+```
+
+18 checks, including asserting the CORS headers *directly* — Node's `fetch` does not enforce CORS,
+so a test that merely succeeded would pass even if every browser client were broken.
 
 `docs/specs/001-robot-lab.md` in the repo root holds the design and the acceptance criteria.
