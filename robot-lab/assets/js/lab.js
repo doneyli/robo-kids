@@ -143,8 +143,16 @@
       }
       paintSp();
       sp.addEventListener('click', function () {
-        ctx.speaker.setEnabled(!ctx.speaker.enabled);
+        var on = !ctx.speaker.enabled;
+        ctx.speaker.setEnabled(on);
         paintSp();
+        // Prove it works, immediately. A toggle that claims "Voice on" and then
+        // stays silent until some later screen happens to speak is unfalsifiable
+        // — you cannot tell a working toggle from a broken one.
+        if (on) {
+          ctx.speaker.unlock();
+          ctx.speaker.say('Voice is on. I will read things out for you.');
+        }
       });
       top.appendChild(sp);
     }

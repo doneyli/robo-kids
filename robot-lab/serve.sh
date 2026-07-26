@@ -56,4 +56,35 @@ echo "  Ctrl-C to stop."
 echo ""
 
 cd "$HERE"
-exec python3 -m http.server "$PORT" --bind 0.0.0.0
+
+# Serve with caching OFF.
+#
+# `python3 -m http.server` sends no cache-control headers, so Safari happily
+# reuses a stale assets/js/*.js after you have edited it — you change a quest,
+# reload on the iPad, and see the old behaviour with no indication why. That is
+# a miserable thing to debug on a Sunday morning with a child waiting.
+#
+# This is a LAN development server for a project you edit constantly; there is
+# no reason to cache anything.
+exec python3 - "$PORT" <<'PYEOF'
+import sys
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+
+class NoCacheHandler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        self.send_header('Pragma', 'no-cache')
+        self.send_header('Expires', '0')
+        super().end_headers()
+
+    def log_message(self, fmt, *args):
+        # 404s and errors are worth seeing; a wall of 200s is not.
+        status = args[1] if len(args) > 1 else ''
+        if not str(status).startswith('2'):
+            super().log_message(fmt, *args)
+
+
+port = int(sys.argv[1])
+ThreadingHTTPServer(('0.0.0.0', port), NoCacheHandler).serve_forever()
+PYEOF

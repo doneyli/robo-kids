@@ -25,18 +25,25 @@
     concepts: ['abstraction', 'decomposition'],
     beyondRobotics: 'How the internet works. Addresses, names, and who is listening.',
     sayThis: [
+      'Wake him up first — then we will find out who he is.',
       'This robot has an address on our wifi, like a house number: 192.168.1.15.',
-      'It also has a name — reachy-mini.local — which is easier to remember.',
-      'When you press a button, the tablet sends a tiny message to that address.',
+      'Every button you press sends a tiny message to that address, and he answers.',
+      'Now ask him a question. He will tell you about himself out loud.',
       'The robot is a server. Our page is a client. Which one is waiting?'
     ],
     activity: {
-      kind: 'telemetry', prompt: 'Meet the robot, properly.',
+      // Movement FIRST. "He has an address" is proved by sending something to
+      // that address and watching him respond in the room — not by reading a
+      // JSON payload. The questions come after he is demonstrably alive.
+      kind: 'telemetry', prompt: 'Wake him up, then interview him.',
       watch: ['status', 'head', 'bodyYaw', 'antennas'],
       probes: [
-        { label: 'Who are you?', endpoint: '/api/daemon/status', explain: 'Name, version, and whether the motors are running.' },
-        { label: 'Where are you looking?', endpoint: '/api/state/full', explain: 'His live pose, straight off the motors.' },
-        { label: 'What camera do you have?', endpoint: '/api/camera/specs', explain: 'Resolutions and lens calibration numbers.' }
+        { label: '☀️ Wake up!', do: 'wake', explain: 'One message to his address. Watch him — that is the whole idea.' },
+        { label: '👋 Say hello', do: 'emotion:welcoming1', explain: 'Another message. Same address, different instruction.' },
+        { label: '🤖 Who are you?', endpoint: '/api/daemon/status', explain: 'Now ask him about himself. He answers out loud.' },
+        { label: '👀 Where are you looking?', endpoint: '/api/state/full', explain: 'He can feel his own position, and report it.' },
+        { label: '📷 What can your eye see?', endpoint: '/api/camera/specs', explain: 'His camera, described in his own words.' },
+        { label: '🧠 How do you think?', endpoint: '/api/kinematics/info', explain: 'The maths he uses to aim his head.' }
       ]
     },
     unplugged: {
@@ -377,8 +384,10 @@
       kind: 'telemetry', prompt: 'Interrogate his eye.',
       watch: ['status'],
       probes: [
-        { label: 'What can your camera do?', endpoint: '/api/camera/specs', explain: 'Every resolution, and the K matrix — lens calibration.' },
-        { label: 'How big is your body?', endpoint: '/api/kinematics/info', explain: 'The solver behind every move.' }
+        { label: '👀 Look at me', do: 'gesture:center|emotion:attentive1', explain: 'Point his eye at your face before you ask what it can see.' },
+        { label: '↔️ Look away', do: 'gesture:lookLeft', explain: 'Now you are out of frame. Same camera, different numbers reaching it.' },
+        { label: '📷 What can your camera do?', endpoint: '/api/camera/specs', explain: 'Every resolution, and the K matrix — lens calibration.' },
+        { label: '🧠 How do you aim your head?', endpoint: '/api/kinematics/info', explain: 'The solver behind every move.' }
       ]
     },
     unplugged: {
@@ -470,7 +479,10 @@
       watch: ['doa'],
       live: true,
       probes: [
-        { label: 'Read direction of arrival', endpoint: '/api/state/doa', explain: '0 is left, about 1.57 is front, 3.14 is right — in radians.' }
+        { label: '👂 Listen', do: 'emotion:attentive2', explain: 'Antennas up. Now clap somewhere and ask him where it came from.' },
+        { label: '🧭 Which way was that?', endpoint: '/api/state/doa', explain: '0 is left, about 1.57 is front, 3.14 is right — in radians.' },
+        { label: '⬅️ Turn to a sound on the left', do: 'pose:bodyYaw=60&yaw=-20&duration=1.0', explain: 'What he would do with that angle.' },
+        { label: '➡️ Turn to one on the right', do: 'pose:bodyYaw=-60&yaw=20&duration=1.0', explain: 'Same code, opposite number.' }
       ]
     },
     unplugged: {
@@ -531,7 +543,10 @@
       watch: ['doa', 'head', 'bodyYaw'],
       live: true,
       probes: [
-        { label: 'Everything at once', endpoint: '/api/state/full', explain: 'Pose, antennas, control mode and DoA in one payload.' }
+        { label: '👀 Eyes on me', do: 'emotion:attentive1', explain: 'One sense: he points his camera at you.' },
+        { label: '👂 Ears open', do: 'emotion:attentive2', explain: 'The other sense. Clap, and see if the two agree.' },
+        { label: '🧩 Everything at once', endpoint: '/api/state/full', explain: 'Pose, antennas, control mode and DoA in one payload — every sense in one answer.' },
+        { label: '🤔 What if they disagree?', do: 'emotion:confused1', explain: 'This is the question with no clean answer.' }
       ]
     },
     unplugged: {
@@ -668,7 +683,10 @@
       watch: ['doa'],
       live: true,
       probes: [
-        { label: 'Read the angle', endpoint: '/api/state/doa', explain: 'Clap somewhere and read what comes back.' }
+        { label: '👂 Get ready to listen', do: 'emotion:attentive1', explain: 'Then clap from somewhere and read the angle.' },
+        { label: '🧭 Read the angle', endpoint: '/api/state/doa', explain: 'Clap somewhere and read what comes back.' },
+        { label: '🔄 Show me 45 degrees', do: 'pose:bodyYaw=45&duration=1.0', explain: 'Turn the number into a direction you can see.' },
+        { label: '🎯 Straight ahead', do: 'gesture:center', explain: '90 degrees in his units is dead in front.' }
       ]
     },
     unplugged: {

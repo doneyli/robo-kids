@@ -425,6 +425,20 @@ input[type=range]::-moz-range-thumb {
 }
 .code-tab.on { background: var(--invert-bg); color: var(--invert-fg); border-color: var(--invert-bg); }
 
+/* The robot answering in his own voice. This is the headline of a probe; the
+   raw JSON underneath is evidence, not the answer. */
+.robot-says {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  font-size: 1.02rem;
+  line-height: 1.5;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* ── Telemetry ───────────────────────────────────────────────────────────── */
 
 .tele { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); }

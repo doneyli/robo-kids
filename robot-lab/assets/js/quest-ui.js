@@ -472,10 +472,86 @@
    * to reach for a capture listener on this container instead, which fired for
    * every probe and so attributed the wrong "asked" pose in the compare readout.
    */
+  var d1 = function (r) { return (r * 180 / Math.PI).toFixed(0); };
+
+  /**
+   * Turn a raw daemon payload into the robot answering in the first person.
+   *
+   * A JSON dump is not a lesson. "Ask the robot who he is" has to produce the
+   * robot SAYING who he is; the payload underneath is the evidence, not the
+   * answer. Returns null for an endpoint with no translation, in which case the
+   * caller falls back to showing the raw JSON alone.
+   */
+  function interpret(endpoint, j) {
+    if (!j || typeof j !== 'object') return null;
+    try {
+      if (endpoint.indexOf('/daemon/status') >= 0) {
+        return 'Hello! My name is ' + j.robot_name + '. I am the ' +
+          (j.wireless_version ? 'wireless' : 'Lite') + ' model' +
+          (j.wireless_version ? ', so the computer that runs me is inside my body' : '') +
+          '. My motors are ' + (j.state === 'running' ? 'running right now' : j.state) +
+          '. You can find me on the wifi at ' + j.wlan_ip +
+          ', and my software is version ' + j.version + '.';
+      }
+      if (endpoint.indexOf('/state/full') >= 0) {
+        var h = j.head_pose || {};
+        var ant = (j.antennas_position || []).map(d1);
+        return 'Right now my head is tilted ' + d1(h.pitch) + ' degrees and turned ' +
+          d1(h.yaw) + ' degrees. My body is facing ' + d1(j.body_yaw) +
+          ' degrees, and my antennas are at ' + ant[0] + ' and ' + ant[1] + ' degrees. ' +
+          'I know all that from the sensors in my six neck motors.';
+      }
+      if (endpoint.indexOf('/camera/specs') >= 0) {
+        var r = j.default_resolution || {};
+        var px = (r.width || 0) * (r.height || 0);
+        return 'My eye takes pictures ' + r.width + ' across and ' + r.height + ' down, ' +
+          r.fps + ' times every second. That is ' + px.toLocaleString() +
+          ' tiny squares in every single picture. I have ' +
+          (j.available_resolutions || []).length + ' different ways of looking.';
+      }
+      if (endpoint.indexOf('/state/doa') >= 0) {
+        if (typeof j.angle !== 'number') return 'I have not heard anything yet. Make a noise!';
+        var deg = Number(d1(j.angle));
+        return 'I heard something at ' + deg + ' degrees — that is ' +
+          (deg < 60 ? 'over to my left' : deg > 120 ? 'over to my right' : 'in front of me') +
+          '. ' + (j.speech_detected ? 'And it sounded like a voice!' : 'It did not sound like talking.');
+      }
+      if (endpoint.indexOf('/kinematics/info') >= 0) {
+        var eng = (j.info || {}).engine || 'unknown';
+        return 'To work out where to put my head I use ' + eng +
+          '. That means I solve the maths exactly, in one go, instead of guessing and checking.';
+      }
+      if (endpoint.indexOf('/motors/status') >= 0) {
+        return j.mode === 'enabled'
+          ? 'My motors are switched on, so I am holding my head up by myself.'
+          : 'My motors are in ' + j.mode + ' mode.';
+      }
+      if (endpoint.indexOf('/volume/current') >= 0) {
+        return 'My speaker is set to ' + j.volume + ' out of 100.';
+      }
+    } catch (e) { /* fall through to the raw payload */ }
+    return null;
+  }
+
+  /**
+   * A short "I heard you" so a question feels answered BY someone.
+   * Antennas perk up, a small nod, antennas back — about a second, and it runs
+   * alongside the fetch rather than blocking it.
+   */
+  function acknowledge(link) {
+    link.goto({ antennas: [45, -45], head: { pitch: -6 }, duration: 0.3, interpolation: 'cartoon' });
+    setTimeout(function () {
+      link.goto({ antennas: [30, -30], head: { pitch: 8 }, duration: 0.3, interpolation: 'cartoon' });
+    }, 340);
+    setTimeout(function () {
+      link.goto({ antennas: [0, 0], duration: 0.4 });
+    }, 700);
+  }
+
   function buildProbes(probes, ctx, onProbe) {
     var host = el('div');
     host.appendChild(el('div', 'divider'));
-    host.appendChild(el('div', 'eyebrow', 'Ask the robot directly'));
+    host.appendChild(el('div', 'eyebrow', 'Ask him — he answers out loud'));
     var out = el('div');
 
     var row = el('div', 'row');
@@ -486,28 +562,55 @@
         if (onProbe) onProbe(p);
         out.textContent = '';
         if (p.explain) out.appendChild(el('p', 'small muted', p.explain));
+
         if (p.do) {
           ctx.run(p.do);
           out.appendChild(el('div', 'eyebrow', 'Sent: ' + global.Actions.describe(p.do)));
           return;
         }
         if (!p.endpoint) return;
-        out.appendChild(el('div', 'eyebrow', 'GET ' + p.endpoint));
+
         if (ctx.link.status !== 'online') {
-          out.appendChild(el('p', 'small muted', 'The robot is not connected, so there is nothing real to read. Reconnect with the chip at the top.'));
+          out.appendChild(el('p', 'small muted',
+            'He is not connected, so there is nothing real to read. Tap the chip at the top to try again.'));
           return;
         }
+
+        // He reacts to being asked, before the answer arrives.
+        acknowledge(ctx.link);
+
+        var answer = el('p', 'robot-says', '…');
+        out.appendChild(answer);
+
+        // The raw payload is evidence, not the answer — available, not shouted.
+        var det = doc.createElement('details');
+        det.className = 'card card-tight';
+        det.style.marginTop = '10px';
+        var sum = doc.createElement('summary');
+        sum.textContent = '🔎  What he actually sent back — GET ' + p.endpoint;
+        sum.style.fontSize = '.84rem';
+        det.appendChild(sum);
         var pre = el('pre', 'wire');
         pre.textContent = 'loading…';
-        out.appendChild(pre);
-        // Go through link._fetch so probes inherit the abort timeout and the
-        // r.ok check. A bare fetch here could hang the panel indefinitely on a
-        // half-open WiFi connection, with a child watching "loading…".
+        det.appendChild(pre);
+        out.appendChild(det);
+
         ctx.link._fetch(p.endpoint, null, 6000)
           .then(function (j) {
             pre.textContent = typeof j === 'string' ? j : JSON.stringify(j, null, 2);
+            var said = interpret(p.endpoint, j);
+            if (said) {
+              answer.textContent = '🤖  ' + said;
+              ctx.speaker.say(said);
+            } else {
+              answer.remove();
+              det.open = true;      // nothing to translate — show the payload
+            }
           })
-          .catch(function (e) { pre.textContent = 'Could not read: ' + e.message; });
+          .catch(function (e) {
+            answer.textContent = 'He did not answer: ' + e.message;
+            pre.textContent = String(e.message);
+          });
       });
       row.appendChild(b);
     });
@@ -591,9 +694,20 @@
     if (a.compare) wrap.appendChild(cmp);
 
     var row = el('div', 'row');
-    var readBtn = el('button', 'btn btn-primary', '📡  Read him now');
+    var readBtn = el('button', 'btn btn-primary', '📡  Ask him where he is');
     readBtn.type = 'button';
-    readBtn.addEventListener('click', function () { refresh(); done(false); });
+    readBtn.addEventListener('click', function () {
+      // He reacts, then reports. Reading numbers off a screen while the robot
+      // sits motionless is a dashboard; this is supposed to be a conversation.
+      if (ctx.link.status === 'online') acknowledge(ctx.link);
+      refresh().then(function (s) {
+        if (!s) return;
+        var said = 'My head is tilted ' + s.head.pitch.toFixed(0) + ' degrees and turned ' +
+          s.head.yaw.toFixed(0) + ' degrees, and my body is at ' + s.bodyYaw.toFixed(0) + ' degrees.';
+        ctx.speaker.say(said);
+      });
+      done(false);
+    });
     row.appendChild(readBtn);
 
     var liveOn = false, timer = null;

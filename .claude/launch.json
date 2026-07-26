@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "robot-lab",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4200", "--bind", "0.0.0.0"],
+      "runtimeExecutable": "./serve.sh",
+      "runtimeArgs": ["4200"],
       "cwd": "robot-lab",
       "port": 4200,
       "url": "http://localhost:4200"
