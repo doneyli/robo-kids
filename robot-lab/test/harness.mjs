@@ -230,9 +230,26 @@ export function loadApp(files, opts = {}) {
   sandbox.__warnings = [];
   sandbox.__errors = [];
 
-  sandbox.setTimeout = setTimeout;
-  sandbox.clearTimeout = clearTimeout;
-  sandbox.setInterval = setInterval;
+  if (opts.fastTimers) {
+    /**
+     * Collapse every delay to a single event-loop turn.
+     *
+     * The action DSL deliberately waits out each move (a recorded emotion blocks
+     * for 2.2s so the next command does not stampede it). Correct in a browser,
+     * unusable in a test that sweeps all 243 action strings — that is minutes of
+     * real waiting. Ordering is preserved because these still go through the
+     * macrotask queue; only the durations vanish.
+     */
+    const timers = new Set();
+    sandbox.setTimeout = (fn) => { const t = setTimeout(fn, 0); timers.add(t); return t; };
+    sandbox.clearTimeout = (t) => { timers.delete(t); return clearTimeout(t); };
+    sandbox.setInterval = (fn) => setInterval(fn, 1);
+    sandbox.__timers = timers;
+  } else {
+    sandbox.setTimeout = setTimeout;
+    sandbox.clearTimeout = clearTimeout;
+    sandbox.setInterval = setInterval;
+  }
   sandbox.clearInterval = clearInterval;
   sandbox.queueMicrotask = queueMicrotask;
 
