@@ -178,7 +178,20 @@
    */
   RobotLink.prototype.connect = function () {
     var self = this;
-    var hosts = this.hosts.slice();
+
+    // Guard against overlapping probes. Tapping the status chip three times
+    // impatiently should not start three racing chains that fight over
+    // this.host and this.status.
+    if (this._connecting) return this._connecting;
+
+    // Dedupe: the saved host is unshifted onto the front every construction, so
+    // without this the list grows and a dead host gets probed twice.
+    var seen = {};
+    var hosts = this.hosts.filter(function (h) {
+      if (!h || seen[h]) return false;
+      seen[h] = true;
+      return true;
+    });
 
     function tryNext() {
       if (!hosts.length) {
@@ -196,13 +209,23 @@
         if (s.state !== 'running') return self._startBackend().then(function () { return s; });
         return s;
       }).then(function () {
+        self._failures = 0;
         self._setStatus('online');
         return 'online';
       }, function () {
         return tryNext();
       });
     }
-    return tryNext();
+
+    this._connecting = tryNext().then(function (r) {
+      self._connecting = null;
+      return r;
+    }, function (e) {
+      self._connecting = null;
+      self._setStatus('simulated');
+      return 'simulated';
+    });
+    return this._connecting;
   };
 
   /**
@@ -234,10 +257,72 @@
     this._emit('status', { status: s, host: this.host, version: this.version });
   };
 
-  /** Drop to simulated mode after a real failure, and tell the UI once. */
+  /**
+   * Handle a failed command.
+   *
+   * Two different failures wear the same clothes here, and treating them alike
+   * was a real bug: one dropped WiFi packet used to kill the robot for the rest
+   * of the session, because nothing ever cleared 'simulated' again.
+   *
+   *   err.status present  -> the robot ANSWERED, it just said no (e.g. 503
+   *                          "Backend not running"). It is reachable; try to
+   *                          bring the motor backend back rather than giving up.
+   *   err.status absent   -> network error, timeout, or abort. Fall back to the
+   *                          simulator, but keep re-probing in the background so
+   *                          the session heals itself when WiFi returns.
+   */
   RobotLink.prototype._degrade = function (err) {
+    var self = this;
+    this._failures = (this._failures || 0) + 1;
+
+    if (err && err.status) {
+      console.warn('[robotlab] robot answered ' + err.status + ' — attempting backend restart');
+      if (!this._restarting) {
+        this._restarting = this._startBackend().then(function () {
+          self._restarting = null;
+          self._failures = 0;
+        }, function () {
+          self._restarting = null;
+          self._setStatus('simulated');
+          self._scheduleRecheck();
+        });
+      }
+      return;
+    }
+
     console.warn('[robotlab] robot unreachable, using simulator —', err && err.message);
     this._setStatus('simulated');
+    this._scheduleRecheck();
+  };
+
+  /**
+   * Quietly re-probe with backoff so a transient dropout self-heals. Capped, and
+   * only one timer is ever outstanding — a 30-minute session must not accumulate
+   * a pile of pending probes.
+   */
+  RobotLink.prototype._scheduleRecheck = function () {
+    var self = this;
+    if (this._recheckTimer || this._connecting) return;
+    var delay = Math.min(30000, 2000 * Math.pow(2, Math.min(4, this._failures - 1)));
+    this._recheckTimer = setTimeout(function () {
+      self._recheckTimer = null;
+      if (!self.host) return;                 // never found him; the chip is the way back
+      self._fetch('/api/daemon/status', null, 2500).then(function (s) {
+        self.daemonState = s.state;
+        self.version = s.version;
+        self._failures = 0;
+        if (s.state === 'running') self._setStatus('online');
+        else self._startBackend().then(function () { self._setStatus('online'); });
+      }, function () {
+        self._scheduleRecheck();
+      });
+    }, delay);
+  };
+
+  /** Stop re-probing. Call when tearing a page down. */
+  RobotLink.prototype.dispose = function () {
+    if (this._recheckTimer) { clearTimeout(this._recheckTimer); this._recheckTimer = null; }
+    this._gen = (this._gen || 0) + 1;
   };
 
   /**
@@ -246,11 +331,24 @@
    *   2. a network failure degrades instead of throwing at a 4-year-old.
    */
   RobotLink.prototype._act = function (evt, detail, send) {
+    var self = this;
+    // Drive the drawing first and always, so the screen reacts instantly even
+    // when the network is slow or absent.
     this._emit(evt, detail);
     this._emit('activity', Object.assign({ kind: evt }, detail));
-    if (this.status !== 'online' || !this.host) return Promise.resolve({ simulated: true });
-    var self = this;
-    return send().catch(function (e) { self._degrade(e); return { simulated: true }; });
+
+    function dispatch() {
+      if (self.status !== 'online' || !self.host) return Promise.resolve({ simulated: true });
+      return send().catch(function (e) { self._degrade(e); return { simulated: true }; });
+    }
+
+    // A child taps the moment the page paints, which used to be during connect() —
+    // status was still 'unknown', so those first taps went to the simulator while
+    // the robot sat there doing nothing. Wait for the probe to settle instead.
+    if (this._connecting && this.status !== 'online') {
+      return this._connecting.then(dispatch);
+    }
+    return dispatch();
   };
 
   // ── Movement ─────────────────────────────────────────────────────────────
@@ -308,8 +406,18 @@
     });
   };
 
+  /**
+   * Stop everything, including a composed gesture still in flight.
+   *
+   * Cancelling the daemon's current move is not enough on its own: a gesture like
+   * spin() is a JS chain of four timed goto calls, so the remaining ones would
+   * still be posted and the robot would resume moving a moment after "stop".
+   * Bumping the generation counter makes every queued step in every running
+   * chain abandon itself.
+   */
   RobotLink.prototype.stop = function () {
     var self = this;
+    this._gen = (this._gen || 0) + 1;
     return this._act('stop', {}, function () {
       return self._fetch('/api/move/stop', { method: 'POST' }, 4000);
     });
@@ -325,9 +433,13 @@
     });
   };
 
-  /** Ask the robot which emotions it actually has. Falls back to the bundled list. */
+  /**
+   * Ask the robot which emotions it actually has. Falls back to the bundled list.
+   * Only a NON-EMPTY answer is cached — caching [] would permanently hide the
+   * emotion catalogue and defeat the whole point of having a bundled fallback.
+   */
   RobotLink.prototype.listEmotions = function () {
-    if (this._emotions) return Promise.resolve(this._emotions);
+    if (this._emotions && this._emotions.length) return Promise.resolve(this._emotions);
     var self = this;
     var fallback = (global.ROBOT_LAB_EMOTION_NAMES || []).slice();
     if (this.status !== 'online') return Promise.resolve(fallback);
@@ -410,9 +522,16 @@
   // The vocabulary the curriculum is written against. Named for what a kid
   // would call them, not for what the joints do.
 
-  function seq(steps) {
+  /**
+   * Run timed steps in order, abandoning the rest if stop() was called.
+   * `link._gen` is the cancellation token: stop() and dispose() bump it, and any
+   * step whose captured generation no longer matches quietly gives up.
+   */
+  function seq(link, steps) {
+    var gen = link._gen || 0;
     return steps.reduce(function (p, step) {
       return p.then(function () {
+        if ((link._gen || 0) !== gen) return;      // stopped — drop the remainder
         var r = step.run();
         return r && r.then ? r.then(function () { return wait(step.after); }) : wait(step.after);
       });
@@ -424,7 +543,7 @@
     var self = this;
     return {
       nod: function () {
-        return seq([
+        return seq(self, [
           { run: function () { return self.goto({ head: { pitch: 22 }, duration: 0.35, interpolation: 'cartoon' }); }, after: 380 },
           { run: function () { return self.goto({ head: { pitch: -14 }, duration: 0.35, interpolation: 'cartoon' }); }, after: 380 },
           { run: function () { return self.goto({ head: { pitch: 18 }, duration: 0.3, interpolation: 'cartoon' }); }, after: 340 },
@@ -432,7 +551,7 @@
         ]);
       },
       shake: function () {
-        return seq([
+        return seq(self, [
           { run: function () { return self.goto({ head: { yaw: 28 }, duration: 0.3, interpolation: 'cartoon' }); }, after: 330 },
           { run: function () { return self.goto({ head: { yaw: -28 }, duration: 0.35, interpolation: 'cartoon' }); }, after: 380 },
           { run: function () { return self.goto({ head: { yaw: 20 }, duration: 0.3, interpolation: 'cartoon' }); }, after: 330 },
@@ -440,7 +559,7 @@
         ]);
       },
       wiggle: function () {
-        return seq([
+        return seq(self, [
           { run: function () { return self.goto({ antennas: [70, -70], duration: 0.25, interpolation: 'cartoon' }); }, after: 280 },
           { run: function () { return self.goto({ antennas: [-70, 70], duration: 0.25, interpolation: 'cartoon' }); }, after: 280 },
           { run: function () { return self.goto({ antennas: [70, -70], duration: 0.25, interpolation: 'cartoon' }); }, after: 280 },
@@ -453,7 +572,7 @@
       lookDown: function () { return self.goto({ head: { pitch: 32, z: -10 }, duration: 0.9 }); },
       center: function () { return self.goto({ duration: 0.8 }); },
       spin: function () {
-        return seq([
+        return seq(self, [
           { run: function () { return self.goto({ bodyYaw: 150, duration: 1.1, interpolation: 'ease_in_out' }); }, after: 1150 },
           { run: function () { return self.goto({ bodyYaw: -150, duration: 1.6, interpolation: 'ease_in_out' }); }, after: 1650 },
           { run: function () { return self.goto({ bodyYaw: 0, duration: 1.0 }); }, after: 1050 }

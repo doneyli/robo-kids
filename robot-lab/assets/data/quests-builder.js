@@ -992,8 +992,13 @@
         '    mini.goto_target(duration=1.0)'
       ].join('\n'),
       run: [
-        { label: 'Run the broken version', do: 'pose:bodyYaw=30&duration=0.5' },
-        { label: 'Run the fixed version', do: 'repeat:4|pose:bodyYaw=30&duration=0.5' }
+        // The broken demo must actually LOOK broken: the same target four times,
+        // so the robot appears frozen after the first move. That is bug 3.
+        { label: 'Run the broken loop (watch him freeze)', do: 'repeat:4|pose:bodyYaw=30&duration=0.5' },
+        // The fixed demo alternates, the way `angle = 30 if i % 2 == 0 else -30`
+        // does. Demonstrating the fix with the bug still in it would undercut
+        // the whole lesson.
+        { label: 'Run the fixed loop (watch him swing)', do: 'repeat:2|pose:bodyYaw=30&duration=0.5|pose:bodyYaw=-30&duration=0.5' }
       ]
     },
     unplugged: {

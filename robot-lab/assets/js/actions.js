@@ -156,28 +156,53 @@
     }, Promise.resolve());
   }
 
+  var REPEAT_MAX = 20;
+
   /**
-   * Run a list of actions in order. `repeat:N` as the first segment of an entry
-   * repeats the REST of that entry N times, which is how the loop quests work.
+   * Run a list of actions in order, expanding the two forms of `repeat:`.
+   *
+   *   'repeat:3|gesture:nod'   repeats the REST of that entry 3 times
+   *   'repeat:3'  (on its own) repeats EVERYTHING BEFORE IT 3 times in total
+   *
+   * The second form is what the "Repeat all 3x" tile in the age-4 loop quest
+   * means. It used to be silently dropped, so that tile did nothing while the
+   * quest still congratulated her — the exact bug a loop lesson cannot have.
+   *
+   * onStep(expandedIndex, expandedTotal, action, originIndex) — originIndex maps
+   * back to the caller's own array, so a sequence UI can highlight the right
+   * tile even after expansion has changed the indices.
    */
   function runAll(actions, ctx, onStep) {
-    var list = [];
-    (actions || []).forEach(function (a) {
+    var list = [];      // {action, origin}
+    (actions || []).forEach(function (a, origin) {
       var steps = parse(a);
-      if (steps.length && steps[0].verb === 'repeat') {
-        var n = Math.max(1, Math.min(20, parseInt(steps[0].payload, 10) || 1));
-        var rest = a.slice(a.indexOf('|') + 1);
-        if (a.indexOf('|') < 0) return;             // bare repeat:N — nothing to repeat
-        for (var i = 0; i < n; i++) list.push(rest);
-      } else {
-        list.push(a);
+      var isRepeat = steps.length && steps[0].verb === 'repeat';
+      if (!isRepeat) { list.push({ action: a, origin: origin }); return; }
+
+      var n = Math.max(1, Math.min(REPEAT_MAX, parseInt(steps[0].payload, 10) || 1));
+      var bar = a.indexOf('|');
+
+      if (bar >= 0) {
+        var rest = a.slice(bar + 1);
+        for (var i = 0; i < n; i++) list.push({ action: rest, origin: origin });
+        return;
+      }
+
+      // Bare repeat:N — replay everything accumulated so far, (n-1) more times,
+      // so that n is the TOTAL number of passes as the label promises.
+      var soFar = list.slice();
+      if (!soFar.length) return;                 // nothing to repeat yet
+      for (var r = 1; r < n; r++) {
+        for (var j = 0; j < soFar.length; j++) {
+          list.push({ action: soFar[j].action, origin: soFar[j].origin });
+        }
       }
     });
 
-    return list.reduce(function (chain, a, i) {
+    return list.reduce(function (chain, entry, i) {
       return chain.then(function () {
-        if (onStep) onStep(i, list.length, a);
-        return run(a, ctx);
+        if (onStep) onStep(i, list.length, entry.action, entry.origin);
+        return run(entry.action, ctx);
       });
     }, Promise.resolve());
   }
@@ -187,10 +212,17 @@
     return parse(action).map(function (s) {
       switch (s.verb) {
         case 'pose': {
+          // x/y/z are millimetres, the rotations are degrees, and antennas are a
+          // pair. Labelling all of them '°' was wrong and shows up in the parent
+          // view, which is exactly where the units need to be trustworthy.
           var p = parseParams(s.payload);
+          var MM = { x: 1, y: 1, z: 1 };
           return 'move ' + Object.keys(p).filter(function (k) {
             return k !== 'duration' && k !== 'interpolation';
-          }).map(function (k) { return k + ' ' + p[k] + '°'; }).join(', ');
+          }).map(function (k) {
+            if (k === 'antennas') return 'antennas ' + p[k].split(',').join('° / ') + '°';
+            return k + ' ' + p[k] + (MM[k] ? 'mm' : '°');
+          }).join(', ');
         }
         case 'emotion': return 'play emotion "' + s.payload + '"';
         case 'gesture': return s.payload;

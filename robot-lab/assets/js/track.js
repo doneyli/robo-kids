@@ -76,10 +76,20 @@
         host.appendChild(doneCard);
       }
 
-      // Season picker
-      var strip = el('div', 'season-strip');
+      // Season picker.
+      //
+      // Resolve `active` to a season that actually exists BEFORE anything reads
+      // it — a hand-edited or stale ?season=99 used to render no pill as
+      // selected and then throw on season.n a few lines later, blanking the page.
       var active = Number(global.Lab.param('season')) ||
         (next ? next.season : global.CURRICULUM.SEASONS.length);
+      var season = global.CURRICULUM.season(active);
+      if (!season) {
+        active = next ? next.season : 1;
+        season = global.CURRICULUM.season(active);
+      }
+
+      var strip = el('div', 'season-strip');
       global.CURRICULUM.SEASONS.forEach(function (s) {
         var b = el('button', 'season-pill' + (s.n === active ? ' on' : ''));
         b.type = 'button';
@@ -96,7 +106,6 @@
       });
       host.appendChild(strip);
 
-      var season = global.CURRICULUM.season(active);
       var sc = document.createElement('section');
       sc.className = 'card';
       sc.appendChild(el('div', 'eyebrow', 'Season ' + season.n));

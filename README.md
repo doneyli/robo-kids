@@ -41,8 +41,30 @@ WebSocket bridge on the Mac, no build tooling. Verified end-to-end from real Chr
 against the physical robot: preflighted `POST /api/move/goto` returns 200, all **81 recorded
 emotions** play, live telemetry reads back, and command latency is 27–100 ms over WiFi.
 
-Endpoint list and the safety-limit table are in [`robot-lab/README.md`](robot-lab/README.md).
-Design and acceptance criteria are in [`docs/specs/001-robot-lab.md`](docs/specs/001-robot-lab.md).
+## Documentation
+
+| Doc | For |
+|---|---|
+| [`robot-lab/README.md`](robot-lab/README.md) | Running it, the endpoint list, the safety-limit table |
+| [`docs/CURRICULUM.md`](docs/CURRICULUM.md) | **Duration, hours per week, and how the curriculum grows as they age** |
+| [`docs/AUTHORING.md`](docs/AUTHORING.md) | Adding a quest — required fields, the 8 activity kinds, the action DSL |
+| [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | When something is wrong five minutes before a session |
+| [`docs/decisions/0001-browser-drives-the-robot-directly.md`](docs/decisions/0001-browser-drives-the-robot-directly.md) | **Why there is no backend**, the rejected alternatives, and how to re-verify the CORS finding |
+| [`docs/reference/`](docs/reference/) | Snapshots of the robot's API contract, so it survives the robot being off |
+| [`docs/specs/001-robot-lab.md`](docs/specs/001-robot-lab.md) | Original design and acceptance criteria |
+
+## Tests
+
+```bash
+cd robot-lab && node --test
+```
+
+Zero dependencies — Node's built-in runner. Nothing touches the network; `fetch` is stubbed.
+An opt-in hardware smoke test that drives the real robot lives separately:
+
+```bash
+cd robot-lab && node tools/live-robot.mjs
+```
 
 ## Hardware
 

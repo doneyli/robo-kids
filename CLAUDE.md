@@ -32,7 +32,12 @@ GET  /api/state/full | /present_head_pose | /present_body_yaw | /api/state/doa
 GET  /api/camera/specs | /api/kinematics/info | /api/kinematics/urdf
 ```
 
-Interactive docs live on the robot: `http://reachy-mini.local:8000/docs`.
+Interactive docs live on the robot: `http://reachy-mini.local:8000/docs`. The contract is also
+**snapshotted in the repo** at `docs/reference/` (full OpenAPI, the 81 emotion names, camera specs,
+and the raw CORS preflight evidence) so none of this needs re-deriving from hardware.
+
+Why there is no backend, what was rejected, and how to re-verify the CORS finding:
+`docs/decisions/0001-browser-drives-the-robot-directly.md`.
 
 - **Units on the wire: radians and metres.** The app works in degrees and millimetres and converts
   at the last moment, in `robot-lab/assets/js/reachy.js`.
@@ -80,6 +85,29 @@ agree. The daemon clamps again on arrival. Never send unclamped user input.
 - Speech: tablet Web Speech API, not the robot. The SDK has no TTS. Safari needs a real user
   gesture before it will speak, which `speak.js` handles by queueing.
 - Progress lives in `localStorage`; export/import is a first-class feature, not a nicety.
+
+## Docs map
+
+- `docs/CURRICULUM.md` — duration, cadence, and the tier progression plan
+- `docs/AUTHORING.md` — how to add a quest (required fields, 8 activity kinds, action DSL grammar)
+- `docs/RUNBOOK.md` — troubleshooting when the robot will not connect
+- `docs/decisions/` — ADRs for load-bearing choices, including rejected alternatives
+- `docs/reference/` — snapshots of the robot's API contract
+
+## Tests
+
+```bash
+cd robot-lab && node --test          # zero deps, no network, no robot
+cd robot-lab && node tools/live-robot.mjs   # opt-in: drives the REAL robot
+```
+
+Node's built-in runner; test files are `robot-lab/test/*.test.mjs` and load the app's classic
+scripts into a VM sandbox via `test/harness.mjs`. `tools/live-robot.mjs` deliberately sits OUTSIDE
+`test/` so `node --test` can never auto-run something that moves hardware.
+
+**Invariant the data tests protect:** `CURRICULUM.sibling()` pairs the two tracks *by position
+within a season*, so every `(track, season)` pair must hold exactly 6 quests in matching
+pedagogical order. Badge ids must be unique across ALL quests, not just within a track.
 
 ## Port assignments
 Check `~/.claude/ports.json` first. Robot Lab uses **4200** (Tier 4). The robot's own daemon owns

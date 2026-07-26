@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#fbf8f4">
+<meta name="theme-color" content="#fbf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161d" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Dad · Robot Lab</title>
 <link rel="stylesheet" href="../assets/css/lab.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧑‍🔬</text></svg>">
@@ -56,7 +58,7 @@
     <div class="row">
       <button class="btn btn-primary" id="exportBtn" type="button">⬇  Export progress</button>
       <button class="btn" id="importBtn" type="button">⬆  Import a backup</button>
-      <input type="file" id="importFile" accept="application/json" class="sr">
+      <input type="file" id="importFile" accept="application/json" class="sr" tabindex="-1" aria-hidden="true">
       <button class="btn btn-sm btn-ghost" id="resetBtn" type="button">Reset everything</button>
     </div>
     <p class="tiny muted" id="backupInfo"></p>
@@ -402,6 +404,11 @@ GET  /api/daemon/status          is the backend running?</pre>
       var kid = ctx.progress.kid(t);
       input.value = (kid.name && kid.name !== t) ? kid.name : '';
       input.placeholder = 'Her name';
+      // The .eyebrow above carries the visible label but is not associated with
+      // the field, so with VoiceOver this announced only "text field".
+      input.id = 'kidName-' + t;
+      input.setAttribute('aria-label',
+        'Name for the ' + CURRICULUM.TRACKS[t].label + ' track (ages ' + CURRICULUM.TRACKS[t].ages + ')');
       input.addEventListener('change', function () {
         ctx.progress.setKidName(t, input.value || t);
         Lab.toast('Saved.', 'ok');

@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+date: Sun, 26 Jul 2026 15:46:25 GMT
+server: uvicorn
+access-control-allow-origin: *
+access-control-allow-methods: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT
+access-control-max-age: 600
+content-length: 2
+content-type: text/plain; charset=utf-8
+
+OK

@@ -1,1 +1,2 @@
 - [project_hardware.md](project_hardware.md) — Physical hardware: Reachy Mini, iPad Pro 10", MacBook Pro
+- [keep-superseded-work.md](keep-superseded-work.md) — Don't delete superseded directories; relabel them instead

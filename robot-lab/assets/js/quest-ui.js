@@ -31,7 +31,9 @@
     var s = doc.createElement('summary');
     s.style.cursor = 'pointer';
     s.style.fontWeight = '750';
-    s.style.minHeight = '32px';
+    s.style.minHeight = '44px';
+    s.style.display = 'flex';
+    s.style.alignItems = 'center';
     s.textContent = (emoji ? emoji + '  ' : '') + summaryText;
     d.appendChild(s);
     return d;
@@ -86,6 +88,8 @@
 
     var need = a.taps || (a.items || []).length;
     var pipHost = el('div', 'taps');
+    pipHost.setAttribute('role', 'img');
+    pipHost.setAttribute('aria-label', '0 of ' + need + ' taps');
     var pips = [];
     for (var i = 0; i < need; i++) {
       var p = el('span', 'pip');
@@ -95,6 +99,9 @@
     var counter = el('div', 'row');
     counter.appendChild(el('span', 'small muted', 'Taps:'));
     counter.appendChild(pipHost);
+    var pipLive = el('span', 'sr');
+    pipLive.setAttribute('aria-live', 'polite');
+    counter.appendChild(pipLive);
     wrap.appendChild(counter);
 
     var grid = el('div', 'tiles tiles-big');
@@ -103,19 +110,32 @@
     (a.items || []).forEach(function (item) {
       var b = el('button', 'tile');
       b.type = 'button';
-      b.appendChild(el('span', 'emoji', item.emoji));
+      // aria-hidden on the emoji: VoiceOver otherwise reads the Unicode name,
+      // so "Wake up!" announced as "sun with face, Wake up!".
+      var tem = el('span', 'emoji', item.emoji);
+      tem.setAttribute('aria-hidden', 'true');
+      b.appendChild(tem);
       b.appendChild(el('span', 'label', item.label));
+      b.setAttribute('aria-pressed', 'false');
+      // Only read the label aloud when the action does not speak for itself.
+      // say() cancels whatever is mid-utterance, so speaking the label and then
+      // running a 'say:' action cut the label off after a syllable.
+      var actionSpeaks = /(^|\|)\s*say:/.test(String(item.do || ''));
+
       b.addEventListener('click', function () {
         if (busy) return;
         busy = true;
         b.classList.add('is-hot');
-        ctx.speaker.say(item.label);
+        if (!actionSpeaks) ctx.speaker.say(item.label);
         ctx.run(item.do).then(function () {
           b.classList.remove('is-hot');
           b.classList.add('is-done');
+          b.setAttribute('aria-pressed', 'true');
           busy = false;
           taps++;
           pips.forEach(function (p, i) { if (i < taps) p.classList.add('on'); });
+          pipHost.setAttribute('aria-label', taps + ' of ' + need + ' taps');
+          pipLive.textContent = taps + ' of ' + need;
           if (taps >= need) done(true);
         });
       });
@@ -132,24 +152,59 @@
     var wrap = el('div');
     if (a.prompt) wrap.appendChild(el('p', null, a.prompt));
 
-    var steps = (a.broken || []).slice();     // debugging quests start pre-filled, wrong
+    // Debugging quests start pre-filled and wrong. Copy the objects, not just
+    // the array — `broken` and `palette` reference the same records in the quest
+    // data, and mutating one would corrupt the palette for the rest of the session.
+    var steps = (a.broken || []).map(function (s) { return Object.assign({}, s); });
+    var running = false;
     var strip = el('div', 'seq');
     strip.setAttribute('data-empty', 'Tap the pictures below to build your plan →');
 
     function paint(runningIndex) {
       strip.textContent = '';
+      if (!steps.length) {
+        // A real text node, not CSS generated content — this is the only
+        // instruction the age-4 sequence activity shows.
+        strip.appendChild(el('span', 'seq-empty', strip.getAttribute('data-empty')));
+      }
       steps.forEach(function (s, i) {
         if (i) strip.appendChild(el('span', 'seq-arrow', '→'));
-        var b = el('button', 'seq-step' + (runningIndex === i ? ' is-running' : ''));
-        b.type = 'button';
-        b.title = 'Tap to remove';
+        // The step body is NOT a delete button.
+        //
+        // It used to be: a plain tap removed the step, with `title` as the only
+        // hint — and `title` never surfaces on a touch device. A 4-year-old
+        // pointing at her own plan while counting it aloud silently destroyed
+        // it, one step per touch, with no undo. Deletion now needs the explicit
+        // ✕, and tapping the body replays just that step.
+        var b = el('div', 'seq-step' + (runningIndex === i ? ' is-running' : ''));
         b.appendChild(el('span', 'n', String(i + 1)));
-        b.appendChild(el('span', 'emoji', s.emoji));
+        var em = el('span', 'emoji', s.emoji);
+        em.setAttribute('aria-hidden', 'true');
+        b.appendChild(em);
         b.appendChild(el('span', 'label', s.label));
-        b.addEventListener('click', function () {
+
+        var body = el('button', 'seq-step-body');
+        body.type = 'button';
+        body.setAttribute('aria-label', 'Step ' + (i + 1) + ', ' + s.label + '. Tap to try just this step.');
+        body.addEventListener('click', function () {
+          if (running) return;
+          ctx.run(s.do);
+        });
+        b.appendChild(body);
+
+        var x = el('button', 'seq-step-x');
+        x.type = 'button';
+        x.appendChild(el('span', 'dot'));
+        x.appendChild(el('span', 'x', '✕'));
+        x.setAttribute('aria-label', 'Remove step ' + (i + 1) + ', ' + s.label);
+        x.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (running) return;
           steps.splice(i, 1);
           paint();
         });
+        b.appendChild(x);
+
         strip.appendChild(b);
       });
       runBtn.disabled = steps.length < (a.minSteps || 2);
@@ -192,11 +247,18 @@
     clearBtn.addEventListener('click', function () { steps = []; paint(); });
 
     runBtn.addEventListener('click', function () {
-      if (!steps.length) return;
+      if (!steps.length || running) return;
+      running = true;
       runBtn.disabled = true;
       clearBtn.disabled = true;
       var actions = steps.map(function (s) { return s.do; });
-      ctx.run(actions, function (i) { paint(i); }).then(function () {
+      // Highlight by ORIGIN index, not the expanded index — a 'repeat:' step
+      // makes the expanded list longer than `steps`, and using the expanded
+      // index highlighted the wrong tile and then ran off the end.
+      ctx.run(actions, function (i, total, action, origin) {
+        paint(typeof origin === 'number' ? origin : i);
+      }).then(function () {
+        running = false;
         paint();
         runBtn.disabled = false;
         clearBtn.disabled = false;
@@ -274,8 +336,10 @@
 
     var wireHost = el('div');
     if (a.showWire) {
-      wireHost.appendChild(el('div', 'eyebrow', 'What actually goes over the wire'));
+      // The heading lives OUTSIDE wireHost, because paint() clears wireHost on
+      // every slider move — putting it inside meant it vanished on first touch.
       wrap.appendChild(el('div', 'divider'));
+      wrap.appendChild(el('div', 'eyebrow', 'What actually goes over the wire'));
     }
     wrap.appendChild(wireHost);
 
@@ -334,6 +398,14 @@
           ? Math.round(got) + meta.unit + ' ⟵ ' + Math.round(asked)
           : Math.round(got) + meta.unit;
         v.classList.toggle('is-clamped', !!(a.showClamp && differs));
+        // Without aria-valuetext a screen reader announces the raw slider value
+        // ("minus 96") and never the clamped result, which is the whole point.
+        var sl = row.querySelector('input[type=range]');
+        if (sl) {
+          sl.setAttribute('aria-valuetext', differs
+            ? Math.round(got) + meta.unit + ' (asked for ' + Math.round(asked) + ', clamped to the safe limit)'
+            : Math.round(got) + meta.unit);
+        }
       });
 
       if (a.showWire) {
@@ -400,7 +472,12 @@
 
   // ── Probes (shared by dial / telemetry / code) ────────────────────────────
 
-  function buildProbes(probes, ctx) {
+  /**
+   * `onProbe(probe)` fires for the specific probe that was tapped. Callers used
+   * to reach for a capture listener on this container instead, which fired for
+   * every probe and so attributed the wrong "asked" pose in the compare readout.
+   */
+  function buildProbes(probes, ctx, onProbe) {
     var host = el('div');
     host.appendChild(el('div', 'divider'));
     host.appendChild(el('div', 'eyebrow', 'Ask the robot directly'));
@@ -411,6 +488,7 @@
       var b = el('button', 'btn btn-sm', p.label);
       b.type = 'button';
       b.addEventListener('click', function () {
+        if (onProbe) onProbe(p);
         out.textContent = '';
         if (p.explain) out.appendChild(el('p', 'small muted', p.explain));
         if (p.do) {
@@ -427,9 +505,13 @@
         var pre = el('pre', 'wire');
         pre.textContent = 'loading…';
         out.appendChild(pre);
-        fetch(ctx.link.base() + p.endpoint)
-          .then(function (r) { return r.json(); })
-          .then(function (j) { pre.textContent = JSON.stringify(j, null, 2); })
+        // Go through link._fetch so probes inherit the abort timeout and the
+        // r.ok check. A bare fetch here could hang the panel indefinitely on a
+        // half-open WiFi connection, with a child watching "loading…".
+        ctx.link._fetch(p.endpoint, null, 6000)
+          .then(function (j) {
+            pre.textContent = typeof j === 'string' ? j : JSON.stringify(j, null, 2);
+          })
           .catch(function (e) { pre.textContent = 'Could not read: ' + e.message; });
       });
       row.appendChild(b);
@@ -537,24 +619,17 @@
     wrap.appendChild(row);
 
     if (a.probes) {
-      var probeHost = buildProbes(a.probes.map(function (p) {
-        // Remember what we asked for, so `compare` can show the error.
-        if (!p.do) return p;
-        var copy = Object.assign({}, p);
-        return copy;
-      }), ctx);
-      // Track asked poses for the compare readout.
-      a.probes.forEach(function (p) {
+      // Record what THIS probe asked for, so the compare readout can show the
+      // gap between the commanded pose and the measured one.
+      wrap.appendChild(buildProbes(a.probes, ctx, function (p) {
         if (!p.do) return;
-        var m = /pitch=(-?[\d.]+)/.exec(p.do), n = /yaw=(-?[\d.]+)/.exec(p.do);
-        if (m || n) {
-          probeHost.addEventListener('click', function () {
-            asked = { pitch: m ? parseFloat(m[1]) : 0, yaw: n ? parseFloat(n[1]) : 0 };
-            setTimeout(refresh, 1300);
-          }, true);
-        }
-      });
-      wrap.appendChild(probeHost);
+        var m = /pitch=(-?[\d.]+)/.exec(p.do);
+        var n = /yaw=(-?[\d.]+)/.exec(p.do);
+        asked = { pitch: m ? parseFloat(m[1]) : 0, yaw: n ? parseFloat(n[1]) : 0 };
+        // Read back once the move has had time to settle.
+        var dur = /duration=([\d.]+)/.exec(p.do);
+        setTimeout(refresh, Math.round((dur ? parseFloat(dur[1]) : 1) * 1000) + 400);
+      }));
     }
 
     refresh();
@@ -570,6 +645,10 @@
     var idx = 0;
     var list = el('div');
     var steps = a.steps || [];
+    // Same guard the button and freeplay builders use. Without it, an excited
+    // child tapping three steps in a row launches overlapping command chains and
+    // the robot receives them interleaved.
+    var busy = false;
 
     steps.forEach(function (s, i) {
       var b = el('button', 'quest-card');
@@ -583,11 +662,16 @@
       var tick = el('span', 'tick', '');
       b.appendChild(tick);
 
+      var actionSpeaks = /(^|\|)\s*say:/.test(String(s.do || ''));
+
       b.addEventListener('click', function () {
+        if (busy) return;
+        busy = true;
         b.classList.add('is-next');
-        ctx.speaker.say(s.text);
+        if (!actionSpeaks) ctx.speaker.say(s.text);
         var p = s.do ? ctx.run(s.do) : Promise.resolve();
         p.then(function () {
+          busy = false;
           b.classList.remove('is-next');
           b.classList.add('is-done');
           tick.textContent = '✓';
@@ -608,6 +692,7 @@
       var ta = doc.createElement('textarea');
       ta.placeholder = 'Type what she said…';
       ta.id = 'observeNote';
+      ta.setAttribute('aria-label', 'What did you notice? ' + a.observe);
       wrap.appendChild(ta);
     }
     return wrap;
@@ -692,6 +777,8 @@
         codeHost.appendChild(codeBlock(src));
         tb.classList.toggle('on', which === 'b');
         tf.classList.toggle('on', which === 'f');
+        tb.setAttribute('aria-pressed', which === 'b' ? 'true' : 'false');
+        tf.setAttribute('aria-pressed', which === 'f' ? 'true' : 'false');
       }
       tb.addEventListener('click', function () { show(a.source, 'b'); });
       tf.addEventListener('click', function () { show(a.fixed, 'f'); done(false); });
@@ -897,11 +984,15 @@
     // because a builder may fire it synchronously, before the footer exists.
     var act = section(null, 'On screen · ' + quest.activity.kind);
     var builder = BUILDERS[quest.activity.kind];
-    var reached = false, onReached = null;
-    function markReachable() {
-      if (reached) return;
+    // Builders signal `true` when the activity met its stated goal and `false`
+    // for partial progress. Both are worth surfacing, differently — discarding
+    // the argument made a half-finished dial look identical to a finished one.
+    var reached = false, reachedFull = false, onReached = null;
+    function markReachable(full) {
+      if (reached && (reachedFull || !full)) return;
       reached = true;
-      if (onReached) onReached();
+      if (full) reachedFull = true;
+      if (onReached) onReached(reachedFull);
     }
     if (builder) act.appendChild(builder(quest.activity, ctx, markReachable));
     else act.appendChild(el('p', 'muted', 'Unknown activity kind: ' + quest.activity.kind));
@@ -952,6 +1043,7 @@
     var note = doc.createElement('textarea');
     note.value = ctx.progress.kid(opts.kidId).notes[quest.id] || '';
     note.placeholder = 'Worth writing down. You will not remember it otherwise.';
+    note.setAttribute('aria-label', 'Notes for ' + quest.title + ' — what she said, what surprised you');
     noteWrap.appendChild(note);
     foot.appendChild(noteWrap);
 
@@ -966,11 +1058,13 @@
     // and applied immediately if the activity already got there.
     var nudge = el('span', 'small muted');
     row.appendChild(nudge);
-    onReached = function () {
+    onReached = function (full) {
       if (already) return;
-      nudge.textContent = 'Activity done — tap the badge button when you are both ready.';
+      nudge.textContent = full
+        ? 'Activity done — tap the badge button when you are both ready.'
+        : 'Good start. Keep going, or finish whenever you like.';
     };
-    if (reached) onReached();
+    if (reached) onReached(reachedFull);
 
     var nextQ = global.CURRICULUM.next(quest.id);
     if (nextQ) {
@@ -987,10 +1081,15 @@
 
     finish.addEventListener('click', function () {
       var obs = doc.getElementById('observeNote');
+      // Unconditional, so a note can be CLEARED. Guarding on non-empty meant the
+      // delete branch in Progress.note() was unreachable and a typo was permanent.
       var text = note.value || (obs ? obs.value : '');
-      if (text) ctx.progress.note(opts.kidId, quest.id, text);
+      ctx.progress.note(opts.kidId, quest.id, text);
+
       var first = ctx.progress.complete(opts.kidId, quest);
-      ctx.progress.logSession(opts.kidId, [quest.id], quest.unplugged.minutes);
+      // Only on the first completion — re-tapping used to inflate the session log
+      // and with it the time-spent totals on the parent dashboard.
+      if (first) ctx.progress.logSession(opts.kidId, [quest.id], quest.unplugged.minutes);
       finish.textContent = '✓  Finished';
       finish.classList.remove('btn-primary');
       if (first && quest.milestone) {
@@ -1001,7 +1100,10 @@
       if (opts.onComplete) opts.onComplete(quest, first);
     });
 
-    global.scrollTo({ top: 0, behavior: 'smooth' });
+    // A CSS media query cannot reach a JS-driven scroll.
+    var calm = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (calm) global.scrollTo(0, 0);
+    else global.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   global.QuestUI = { render: render, highlightPython: highlightPython };

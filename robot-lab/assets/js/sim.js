@@ -71,7 +71,11 @@
     this.pose = { head: { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 }, antennas: [0, 0], bodyYaw: 0 };
     this._blinkTimer = null;
     this.render(0.3);
-    if (opts.autoBlink !== false) this._startBlinking();
+    // The blink loop runs forever. Under Reduce Motion the CSS rule collapses the
+    // opacity transition to 0.01ms, which turns a soft blink into a hard flash of
+    // two grey rectangles across his face — worse than the animation it replaced.
+    var calm = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (opts.autoBlink !== false && !calm) this._startBlinking();
   }
 
   /**
@@ -142,6 +146,10 @@
       lids.style.opacity = '1';
       setTimeout(function () { lids.style.opacity = '0'; setTimeout(one, 130); }, 110);
     })();
+  };
+
+  ReachySim.prototype.stopBlinking = function () {
+    if (this._blinkTimer) { clearTimeout(this._blinkTimer); this._blinkTimer = null; }
   };
 
   ReachySim.prototype._startBlinking = function () {

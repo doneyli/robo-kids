@@ -1,9 +1,15 @@
 /* ============================================================================
  * lab.css — Robot Lab
  *
- * Tablet first. Every interactive target is at least 48px, and the age-4 track
- * uses 96px+ because a four-year-old's aim is not great and a missed tap breaks
- * the cause-and-effect link the whole quest depends on.
+ * Tablet first. Primary actions are at least 48px and the age-4 tiles are 168px,
+ * because a four-year-old's aim is not great and a missed tap breaks the
+ * cause-and-effect link the whole quest depends on. Secondary controls are 44px,
+ * the WCAG 2.5.5 / Apple HIG floor — nothing is below that.
+ *
+ * Contrast is held to 4.5:1 for text and 3:1 for component borders in BOTH
+ * schemes. Anything inverted (toast, selected pill, active tab) must use
+ * --invert-bg/--invert-fg rather than --ink plus a hardcoded white, or it
+ * disappears in dark mode.
  *
  * Two identities on a shared skeleton:
  *   .t-explorer  warm sunset — amber, coral, peach. Round, soft, loud.
@@ -13,12 +19,26 @@
 :root {
   --ink: #191d2b;
   --ink-2: #4a5165;
-  --ink-3: #7b8296;
+  /* 4.6:1 on --paper. Was #7b8296 (3.62:1), which failed at the 10.9–14.4px
+     sizes this is actually used at — including the only instruction shown for
+     the age-4 sequence activity. */
+  --ink-3: #616879;
   --paper: #fbf8f4;
   --card: #ffffff;
   --line: #e6e2db;
+  /* Borders of non-text components need 3:1 (WCAG 1.4.11); --line is 1.29:1. */
+  --line-strong: #b9b2a6;
   --accent: #ff7a2f;
   --accent-2: #4c7dff;
+  /* Text sitting ON --accent. White on #ff7a2f is 2.60:1 — the least legible
+     text in the app was the one button a 4-year-old must find every week. */
+  --accent-deep: #b4430b;
+  --accent-fg: #ffffff;
+  /* Inverted surfaces (toast, selected pill, active tab). These must flip with
+     the scheme: hardcoding #fff on var(--ink) gave 1.16:1 in dark mode, i.e.
+     invisible. */
+  --invert-bg: #191d2b;
+  --invert-fg: #ffffff;
   --ok: #16a34a;
   --warn: #d97706;
   --sim: #7c6df2;
@@ -31,8 +51,8 @@
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
 }
 
-.t-explorer { --accent: #ff7a2f; --accent-soft: #fff1e6; }
-.t-builder { --accent: #4c7dff; --accent-soft: #eaf0ff; }
+.t-explorer { --accent: #ff7a2f; --accent-soft: #fff1e6; --accent-deep: #a83f0a; }
+.t-builder { --accent: #4c7dff; --accent-soft: #eaf0ff; --accent-deep: #1e46c4; }
 
 * { box-sizing: border-box; }
 
@@ -44,11 +64,39 @@ body {
   color: var(--ink);
   background: var(--paper);
   line-height: 1.55;
-  /* Kids will drag on everything. Let them scroll, not select. */
-  -webkit-user-select: none;
-  user-select: none;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: contain;
+}
+
+/* Kids drag on everything, so controls are unselectable — but PROSE is not.
+   Blanket `user-select: none` on body meant Dad could not copy the notes he had
+   typed himself, which are the one artefact of nine months of Sundays. */
+.tile, .seq-step, .pick, .quest-card, .season-pill, .btn, .code-tab,
+.robot-chip, .taps, .badge, .sim {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Repeated tapping is the core interaction of the age-4 track (tap counters,
+   building a sequence). Without this, a second tap inside ~300ms is treated as
+   double-tap-to-zoom and Safari zooms instead of registering the tap. */
+.btn, .tile, .seq-step, .season-pill, .code-tab, .robot-chip,
+.quest-card, .pick, summary, label.check, input[type=range] {
+  touch-action: manipulation;
+}
+
+/* No :focus-visible rule existed at all. The builder track deliberately puts an
+   8-year-old on a Mac with a keyboard. */
+:focus-visible {
+  outline: 3px solid var(--accent-2);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.btn-primary:focus-visible,
+.season-pill.on:focus-visible,
+.code-tab.on:focus-visible {
+  outline-color: var(--invert-fg);
+  outline-offset: 3px;
 }
 
 h1, h2, h3 { line-height: 1.2; margin: 0 0 .4em; letter-spacing: -.02em; }
@@ -58,7 +106,13 @@ h3 { font-size: 1.06rem; font-weight: 700; }
 p { margin: 0 0 .8em; }
 a { color: var(--accent-2); }
 
-.wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(14px, 3vw, 28px) 72px; }
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(clamp(14px, 3vw, 28px), env(safe-area-inset-left));
+  padding-right: max(clamp(14px, 3vw, 28px), env(safe-area-inset-right));
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  padding-top: 0;
+}
 .wrap-wide { max-width: 1320px; }
 
 /* ── Top bar ─────────────────────────────────────────────────────────────── */
@@ -67,6 +121,9 @@ a { color: var(--accent-2); }
   position: sticky; top: 0; z-index: 40;
   display: flex; align-items: center; gap: 12px;
   padding: 10px clamp(14px, 3vw, 28px);
+  padding-left: max(clamp(14px, 3vw, 28px), env(safe-area-inset-left));
+  padding-right: max(clamp(14px, 3vw, 28px), env(safe-area-inset-right));
+  flex-wrap: wrap; row-gap: 6px;
   background: color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--line);
@@ -82,7 +139,7 @@ a { color: var(--accent-2); }
 /* Robot connection state. This is the first thing Don looks at. */
 .robot-chip {
   display: inline-flex; align-items: center; gap: 8px;
-  min-height: 40px; padding: 0 14px;
+  min-height: 44px; padding: 0 14px; flex: none;
   border-radius: 999px; border: 1px solid var(--line);
   background: var(--card); font-size: .84rem; font-weight: 650;
   cursor: pointer; white-space: nowrap;
@@ -99,24 +156,39 @@ a { color: var(--accent-2); }
 .robot-chip.is-busy .led { animation: pulse 1.1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .25; } }
 
+/* Below ~540px brand text + voice label + status chip do not fit on one row, and
+   the sticky bar wrapped to 115px — 14% of an iPhone viewport, permanently. Drop
+   to icons; the aria-labels still carry the full meaning. */
+@media (max-width: 540px) {
+  .lab-brand .brand-text { display: none; }
+  .vt-text { display: none; }
+  .lab-top { gap: 8px; }
+}
+
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 
 .btn {
+  /* inline-flex, not the default inline for anchors: a .btn <a> dropped into a
+     plain <div> stayed inline, so min-height did nothing and the launcher's
+     "Open →" rendered 33px tall. */
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   -webkit-appearance: none; appearance: none;
   min-height: 48px; padding: 11px 20px;
   border-radius: var(--r-md); border: 1px solid var(--line);
   background: var(--card); color: var(--ink);
-  font: inherit; font-weight: 700; cursor: pointer;
+  font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
   transition: transform .12s cubic-bezier(.34, 1.4, .5, 1), box-shadow .18s, background .18s;
 }
 .btn:active { transform: scale(.965); }
 .btn-primary {
-  background: var(--accent); border-color: transparent; color: #fff;
-  box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 62%, #000);
+  /* --accent-deep, not --accent: white on the bright accent measured 2.60:1. */
+  background: var(--accent-deep); border-color: transparent; color: var(--accent-fg);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--accent-deep) 62%, #000);
 }
-.btn-primary:active { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 62%, #000); }
+.btn-primary:active { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent-deep) 62%, #000); }
 .btn-ghost { background: transparent; }
-.btn-sm { min-height: 40px; padding: 7px 14px; font-size: .86rem; border-radius: var(--r-sm); }
+/* 44px is the WCAG 2.5.5 / Apple HIG floor. These were 40px. */
+.btn-sm { min-height: 44px; padding: 8px 14px; font-size: .86rem; border-radius: var(--r-sm); }
 .btn:disabled { opacity: .42; cursor: default; transform: none; }
 
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -161,9 +233,13 @@ a { color: var(--accent-2); }
   display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
   gap: clamp(16px, 3vw, 32px); align-items: start;
 }
+/* min-width:0 lets a grid item shrink below its min-content, which is what
+   actually allows the overflow-x:auto children inside to scroll instead of
+   forcing the whole page wide. */
+.stage > * { min-width: 0; }
 .stage > .stage-robot { position: sticky; top: 78px; }
 @media (max-width: 780px) {
-  .stage { grid-template-columns: 1fr; }
+  .stage { grid-template-columns: minmax(0, 1fr); }
   .stage > .stage-robot { position: static; }
   .sim-svg { max-width: 210px; }
 }
@@ -177,7 +253,7 @@ a { color: var(--accent-2); }
   -webkit-appearance: none; appearance: none;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; min-height: 132px; padding: 18px 12px;
-  border: 2px solid var(--line); border-radius: var(--r-lg);
+  border: 2px solid var(--line-strong); border-radius: var(--r-lg);
   background: var(--card); color: var(--ink);
   font: inherit; cursor: pointer; text-align: center;
   box-shadow: var(--shadow);
@@ -187,7 +263,9 @@ a { color: var(--accent-2); }
 .tile .emoji { font-size: clamp(2.6rem, 7vw, 3.6rem); line-height: 1; }
 .tile .label { font-weight: 750; font-size: .98rem; }
 .tile:active { transform: scale(.94); box-shadow: var(--shadow); }
-.tile:hover { border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); box-shadow: var(--shadow-lift); }
+@media (hover: hover) and (pointer: fine) {
+  .tile:hover { border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); box-shadow: var(--shadow-lift); }
+}
 .tile.is-hot {
   border-color: var(--accent); background: var(--accent-soft);
   animation: tilePop .42s cubic-bezier(.34, 1.5, .5, 1);
@@ -202,8 +280,8 @@ a { color: var(--accent-2); }
 /* Tap counter */
 .taps { display: flex; gap: 7px; align-items: center; }
 .taps .pip {
-  width: 15px; height: 15px; border-radius: 50%;
-  border: 2px solid var(--line); background: transparent;
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 2px solid var(--line-strong); background: var(--line);
   transition: background .2s, border-color .2s, transform .2s;
 }
 .taps .pip.on { background: var(--accent); border-color: var(--accent); transform: scale(1.16); }
@@ -216,15 +294,37 @@ a { color: var(--accent-2); }
   border: 2px dashed var(--line); border-radius: var(--r-md);
   background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
 }
-.seq:empty::before {
-  content: attr(data-empty); color: var(--ink-3); font-size: .9rem; font-weight: 600;
-}
+.seq-empty { color: var(--ink-3); font-size: .9rem; font-weight: 600; }
 .seq-step {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  min-width: 74px; min-height: 74px; padding: 9px 8px;
-  border: 2px solid var(--line); border-radius: var(--r-sm);
-  background: var(--card); cursor: pointer; font: inherit;
+  min-width: 78px; min-height: 78px; padding: 9px 8px;
+  border: 2px solid var(--line-strong); border-radius: var(--r-sm);
+  background: var(--card); font: inherit;
 }
+/* An invisible button filling the step, so tapping the body replays that step.
+   Deletion lives on the ✕ only — see the comment in buildSequence. */
+.seq-step-body {
+  position: absolute; inset: 0; z-index: 1;
+  border: 0; background: transparent; padding: 0; margin: 0;
+  cursor: pointer; border-radius: var(--r-sm);
+}
+/* 44px hit area with a 24px visible dot inside it, so the target is big enough
+   for a small finger without the ✕ dominating the step it belongs to. */
+.seq-step-x {
+  position: absolute; top: -11px; right: -11px; z-index: 2;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border: 0; background: transparent; padding: 0;
+  font: inherit; font-size: .74rem; font-weight: 800; line-height: 1;
+  color: var(--ink-2); cursor: pointer;
+}
+.seq-step-x .dot {
+  grid-area: 1 / 1;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--line-strong);
+}
+.seq-step-x .x { grid-area: 1 / 1; }
+.seq-step-x:active .dot { background: var(--accent-soft); border-color: var(--accent); }
 .seq-step .n {
   position: absolute; top: -9px; left: -7px;
   width: 22px; height: 22px; border-radius: 50%;
@@ -240,7 +340,14 @@ a { color: var(--accent-2); }
 /* ── Dials — the age-8 numeric control ───────────────────────────────────── */
 
 .dials { display: grid; gap: 16px; }
-.dial-row { display: grid; grid-template-columns: 92px 1fr 108px; gap: 14px; align-items: center; }
+.dial-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 108px; gap: 14px; align-items: center; }
+/* Below ~640px the two fixed tracks left ~85px of slider travel, which made the
+   "push past the clamp" lesson physically impossible to perform. Give the slider
+   the whole row. */
+@media (max-width: 640px) {
+  .dial-row { grid-template-columns: 1fr auto; row-gap: 2px; }
+  .dial-row input[type=range] { grid-column: 1 / -1; }
+}
 .dial-row .name { font-weight: 750; font-size: .95rem; }
 .dial-row .name small { display: block; font-weight: 500; color: var(--ink-3); font-size: .72rem; }
 .dial-row .val {
@@ -303,11 +410,11 @@ input[type=range]::-moz-range-thumb {
 .code-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
 .code-tab {
   border: 1px solid var(--line); background: var(--card);
-  border-radius: var(--r-sm); padding: 7px 14px;
+  border-radius: var(--r-sm); padding: 8px 14px;
   font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer;
-  min-height: 40px;
+  min-height: 44px;
 }
-.code-tab.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.code-tab.on { background: var(--invert-bg); color: var(--invert-fg); border-color: var(--invert-bg); }
 
 /* ── Telemetry ───────────────────────────────────────────────────────────── */
 
@@ -327,13 +434,32 @@ input[type=range]::-moz-range-thumb {
 /* ── Quest / lesson chrome ───────────────────────────────────────────────── */
 
 .season-strip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; }
+
+/* The default scrollbar renders as a stark white bar on the dark theme. Tone the
+   horizontal scrollers down without hiding them — the season strip genuinely
+   scrolls and that has to stay discoverable. */
+.season-strip, .code, .wire, .tele, .seq {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.season-strip::-webkit-scrollbar,
+.code::-webkit-scrollbar,
+.wire::-webkit-scrollbar { height: 8px; }
+.season-strip::-webkit-scrollbar-track,
+.code::-webkit-scrollbar-track,
+.wire::-webkit-scrollbar-track { background: transparent; }
+.season-strip::-webkit-scrollbar-thumb,
+.code::-webkit-scrollbar-thumb,
+.wire::-webkit-scrollbar-thumb {
+  background: var(--line-strong); border-radius: 999px;
+}
 .season-pill {
   flex: none; display: flex; align-items: center; gap: 7px;
   min-height: 44px; padding: 0 16px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--card);
   font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; white-space: nowrap;
 }
-.season-pill.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.season-pill.on { background: var(--invert-bg); color: var(--invert-fg); border-color: var(--invert-bg); }
 .season-pill .frac { font-family: var(--mono); font-size: .78rem; opacity: .7; }
 
 .quest-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); }
@@ -343,10 +469,14 @@ input[type=range]::-moz-range-thumb {
   background: var(--card); font: inherit; cursor: pointer;
   box-shadow: var(--shadow); transition: transform .14s, box-shadow .2s, border-color .2s;
 }
-.quest-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--accent) 46%, var(--line)); }
+@media (hover: hover) and (pointer: fine) {
+  .quest-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--accent) 46%, var(--line)); }
+}
+/* Touch gets no hover, so it needs its own press feedback. */
+.quest-card:active { transform: scale(.985); }
 .quest-card .qe { font-size: 2.1rem; line-height: 1; flex: none; }
-.quest-card .qt { font-weight: 750; margin-bottom: 2px; }
-.quest-card .qi { font-size: .84rem; color: var(--ink-2); }
+.quest-card .qt { display: block; font-weight: 750; margin-bottom: 2px; color: var(--ink); }
+.quest-card .qi { display: block; font-size: .84rem; color: var(--ink-2); }
 .quest-card.is-done { background: color-mix(in srgb, var(--ok) 6%, var(--card)); border-color: color-mix(in srgb, var(--ok) 34%, var(--line)); }
 .quest-card.is-next { border-color: var(--accent); border-width: 2px; }
 .quest-card .tick { margin-left: auto; color: var(--ok); font-weight: 800; flex: none; }
@@ -401,7 +531,10 @@ input[type=range]::-moz-range-thumb {
   box-shadow: var(--shadow); cursor: pointer; font: inherit;
   transition: transform .16s cubic-bezier(.34, 1.3, .5, 1), box-shadow .22s, border-color .22s;
 }
-.pick:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+@media (hover: hover) and (pointer: fine) {
+  .pick:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+}
+.pick:active { transform: scale(.99); }
 .pick .pe { font-size: 3.2rem; line-height: 1; display: block; margin-bottom: 10px; }
 .pick .pt { font-size: 1.32rem; font-weight: 800; letter-spacing: -.02em; }
 .pick .pa { font-family: var(--mono); font-size: .8rem; color: var(--ink-3); margin-bottom: 8px; }
@@ -417,12 +550,12 @@ input[type=range]::-moz-range-thumb {
 /* ── Toast ───────────────────────────────────────────────────────────────── */
 
 .toast-host {
-  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+  position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%);
   z-index: 90; display: grid; gap: 8px; width: min(520px, calc(100vw - 28px));
 }
 .toast {
   padding: 13px 18px; border-radius: var(--r-md);
-  background: var(--ink); color: #fff; font-weight: 650; font-size: .92rem;
+  background: var(--invert-bg); color: var(--invert-fg); font-weight: 650; font-size: .92rem;
   box-shadow: var(--shadow-lift);
   animation: toastIn .3s cubic-bezier(.34, 1.4, .5, 1);
 }
@@ -470,14 +603,24 @@ textarea { min-height: 92px; resize: vertical; }
 /* Dark mode. Kids use this at bedtime; the robot glows nicely on dark. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --ink: #f0eeea; --ink-2: #b3b8c6; --ink-3: #838a9c;
+    --ink: #f0eeea; --ink-2: #b3b8c6;
+    --ink-3: #949bad;               /* 4.8:1 on the dark paper */
     --paper: #14161d; --card: #1c1f28; --line: #2c303c;
+    --line-strong: #4c5261;
+    /* Inverted surfaces flip too, otherwise .toast / .season-pill.on /
+       .code-tab.on render near-white text on a near-white fill (1.16:1). */
+    --invert-bg: #f0eeea; --invert-fg: #14161d;
     --shadow: 0 2px 4px rgba(0, 0, 0, .3), 0 12px 28px -12px rgba(0, 0, 0, .6);
     --shadow-lift: 0 4px 8px rgba(0, 0, 0, .36), 0 22px 44px -16px rgba(0, 0, 0, .7);
   }
-  .t-explorer { --accent-soft: #2e2016; }
-  .t-builder { --accent-soft: #171f33; }
+  /* The bright accent is legible enough on a dark surface, so the deepened
+     variant is only needed in light mode. */
+  .t-explorer { --accent-soft: #2e2016; --accent-deep: #c2530f; }
+  .t-builder { --accent-soft: #171f33; --accent-deep: #3f6ae8; }
   .chip-plain { background: #262a34; }
+  /* These two were hardcoded and measured 3.28:1 and 2.32:1 on the dark card. */
+  .sim-badge.is-live { color: #4ade80; }
+  .sim-badge.is-sim { color: #c4b5fd; }
   .robot-chip.is-online { background: #10231a; }
   .robot-chip.is-sim { background: #1d1930; }
   .badge, .tele-cell, .code-tab { background: var(--card); }

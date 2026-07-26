@@ -23,7 +23,19 @@
     { id: 'kindness', label: 'Kindness', emoji: '💛', blurb: 'How robots should treat people, and people robots.' }
   ];
 
-  function today() { return new Date().toISOString().slice(0, 10); }
+  /**
+   * Local calendar date, not UTC.
+   *
+   * toISOString() would be simpler and wrong: Montreal is UTC-4, so a Sunday
+   * evening session — which is exactly when these happen — used to be stamped
+   * with Monday's date. That shifts completion dates and can invent or break a
+   * week-streak.
+   */
+  function today() {
+    var d = new Date();
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
 
   function blank() {
     return { version: 1, kids: {}, updated: today() };
@@ -72,12 +84,35 @@
 
   Progress.prototype.onChange = function (fn) { this._listeners.push(fn); return this; };
 
+  /**
+   * Fetch a kid record, normalising rather than only creating.
+   *
+   * An imported backup or a half-written localStorage entry can contain a kid
+   * object that exists but is missing `badges` or has `sessions` as something
+   * other than an array. Returning that unpatched pushes the crash downstream
+   * into rendering, where it is much harder to diagnose.
+   */
   Progress.prototype.kid = function (id) {
-    if (!this.data.kids[id]) {
+    var existing = this.data.kids[id];
+    if (!existing) {
       this.data.kids[id] = blankKid(id, id === 'explorer' ? 'explorer' : 'builder');
       this._save();
+      return this.data.kids[id];
     }
-    return this.data.kids[id];
+
+    var patched = false;
+    if (!existing.track) { existing.track = id === 'explorer' ? 'explorer' : 'builder'; patched = true; }
+    if (!existing.name) { existing.name = id; patched = true; }
+    ['completed', 'badges', 'notes'].forEach(function (f) {
+      if (!existing[f] || typeof existing[f] !== 'object' || Array.isArray(existing[f])) {
+        existing[f] = {};
+        patched = true;
+      }
+    });
+    if (!Array.isArray(existing.sessions)) { existing.sessions = []; patched = true; }
+    if (!existing.created) { existing.created = today(); patched = true; }
+    if (patched) this._save();
+    return existing;
   };
 
   Progress.prototype.setKidName = function (id, name) {
@@ -167,7 +202,14 @@
     };
   };
 
-  /** Consecutive distinct calendar weeks with at least one completion. */
+  /**
+   * Consecutive distinct calendar weeks with at least one completion, counted
+   * back from NOW.
+   *
+   * The anchor matters: without it, four solid weeks last spring would still be
+   * reported as "4 weeks in a row" in October. A streak has to be live to mean
+   * anything. One week of grace, so a skipped Sunday does not wipe it.
+   */
   Progress.prototype._streak = function (k) {
     var weeks = {};
     Object.keys(k.completed).forEach(function (q) {
@@ -175,6 +217,15 @@
     });
     var keys = Object.keys(weeks).sort().reverse();
     if (!keys.length) return 0;
+
+    // Live if the most recent week is this week, the week before (one week of
+    // grace for a skipped Sunday), or — defensively — in the future, which can
+    // happen with an imported backup or a device whose clock is wrong. A future
+    // date should not silently zero a real streak.
+    var thisWeek = weekKey(today());
+    var live = keys[0] >= thisWeek || adjacentWeeks(keys[0], thisWeek);
+    if (!live) return 0;
+
     var n = 1;
     for (var i = 1; i < keys.length; i++) {
       if (adjacentWeeks(keys[i], keys[i - 1])) n++;
@@ -228,7 +279,9 @@
     Object.keys(incoming.kids).forEach(function (id) {
       var src = incoming.kids[id];
       var dst = self.kid(id);
-      dst.name = dst.name || src.name;
+      // kid() seeds `name` with the kid id, so `dst.name || src.name` could
+      // never take the imported name. Treat "still the raw id" as unset.
+      if (src.name && (!dst.name || dst.name === id)) dst.name = src.name;
       ['completed', 'badges', 'notes'].forEach(function (f) {
         Object.keys(src[f] || {}).forEach(function (k) {
           if (!dst[f][k]) dst[f][k] = src[f][k];
