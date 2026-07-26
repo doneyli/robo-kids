@@ -96,8 +96,11 @@ test('kid() auto-creates a record with empty collections and today as created', 
   assert.deepEqual(plain(k.notes), {});
   assert.deepEqual(plain(k.sessions), []);
   assert.deepEqual(k.created, TODAY);
-  // Same object on the second call — not a new blank record each time.
-  assert.deepEqual(p.kid('explorer'), k);
+  // The SAME object on the second call, not a fresh blank record: callers such
+  // as quest-ui mutate what kid() hands back, so identity has to hold.
+  assert.ok(p.kid('explorer') === k, 'kid() must return the live record, not a copy');
+  p.kid('explorer').name = 'Lucia';
+  assert.deepEqual(p.kid('explorer').name, 'Lucia');
 });
 
 // The track is derived from the id, and 'explorer' is the ONLY id that maps to
