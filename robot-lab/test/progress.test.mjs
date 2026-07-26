@@ -13,7 +13,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadApp, SCRIPTS, readSource } from './harness.mjs';
+import { loadApp, SCRIPTS } from './harness.mjs';
 
 const KEY = 'robotlab.progress.v1';
 
@@ -313,6 +313,22 @@ test('strandTally reports all six strands with zero quests, and ignores unknown 
   assert.deepEqual(Object.keys(t2).length, 6);
 });
 
+// Denominators come from milestones, not from quests. Every authored quest
+// happens to carry one today, so this uses a synthetic list — otherwise the
+// guard could be deleted and no test would notice.
+test('strandTally denominators count milestones, ignoring quests without one', () => {
+  const { p } = fresh();
+  const tally = p.strandTally('explorer', [
+    { id: 'a', track: 'explorer', milestone: { strand: 'motion', badge: 'a', title: 'A' } },
+    { id: 'b', track: 'explorer' },                                                  // no milestone
+    { id: 'c', track: 'explorer', milestone: { strand: 'motion', badge: 'c', title: 'C' } },
+    { id: 'd', track: 'explorer', milestone: { strand: 'astrophysics', badge: 'd', title: 'D' } }
+  ]);
+  assert.deepEqual(tally.motion.total, 2, 'the milestone-less quest is not a denominator');
+  const sum = Object.keys(tally).reduce((n, s) => n + tally[s].total, 0);
+  assert.deepEqual(sum, 2, 'an unknown strand is dropped, not invented as a seventh bar');
+});
+
 /* ── stats() ────────────────────────────────────────────────────────────── */
 
 test('stats() counts completed and total for the kid own track only', () => {
@@ -413,12 +429,20 @@ test('a streak spans the New Year', () => {
   assert.deepEqual(streakFor(['2026-12-21', '2026-12-14'], NY), 0, 'too stale to be live');
 });
 
-// Weeks are keyed in UTC, so a spring-forward Sunday is still exactly 7 days
-// from the one before it. A local-time subtraction would give 6d23h and break.
+/**
+ * Weeks are keyed and differenced in UTC, so two weeks whose gap CONTAINS a
+ * clock change are still exactly 7 * 86400000 ms apart. A local-time
+ * subtraction gives 6d23h in spring and 7d1h in autumn, and the streak silently
+ * resets every March — in Montreal, mid-curriculum.
+ */
 test('a streak survives a daylight-saving change', () => {
-  // 8 Mar 2026 is the US/Canada spring-forward Sunday.
-  assert.deepEqual(streakFor(['2026-03-08', '2026-03-01'], '2026-03-08T12:00:00'), 2);
-  assert.deepEqual(streakFor(['2026-11-01', '2026-10-25'], '2026-11-01T12:00:00'), 2);
+  // Spring forward is Sunday 8 Mar 2026, inside the week beginning Mon 2 Mar.
+  // These two weeks (2 Mar and 9 Mar) are the pair whose gap straddles it.
+  assert.deepEqual(streakFor(['2026-03-15', '2026-03-08'], '2026-03-15T12:00:00'), 2);
+  assert.deepEqual(streakFor(['2026-03-22', '2026-03-15', '2026-03-08', '2026-03-01'],
+    '2026-03-22T12:00:00'), 4);
+  // Fall back is Sunday 1 Nov 2026, inside the week beginning Mon 26 Oct.
+  assert.deepEqual(streakFor(['2026-11-08', '2026-11-01'], '2026-11-08T12:00:00'), 2);
 });
 
 test('stats().streakWeeks reports the same number as the streak itself', () => {
@@ -720,60 +744,12 @@ test('nine consecutive Sundays produce coherent stats, badges and a live streak'
   assert.deepEqual(earned, 9, 'every badge lands in exactly one strand');
 });
 
-/* ── regression guards for two bugs already fixed ───────────────────────── */
-
-/**
- * BUG 1 (reachy.js toWire): `Number(duration) || 1.0` treated an explicit 0 as
- * "no duration given" and silently turned an instant move into a one-second
- * one. An explicit 0 must clamp to the 0.1s floor; only a genuinely absent or
- * unparseable duration may default to 1.0.
- */
-test('regression: duration 0 clamps to the 0.1s floor and does not become 1.0', () => {
-  const { RobotLink } = loadApp(SCRIPTS.reachy, {});
-  const zero = { head: { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 }, antennas: [0, 0], bodyYaw: 0 };
-
-  assert.deepEqual(RobotLink.toWire(zero, 0).duration, 0.1);
-  assert.deepEqual(RobotLink.toWire(zero, '0').duration, 0.1);
-  assert.deepEqual(RobotLink.toWire(zero, 0.05).duration, 0.1);
-
-  assert.deepEqual(RobotLink.toWire(zero, undefined).duration, 1.0);
-  assert.deepEqual(RobotLink.toWire(zero, null).duration, 1.0);
-  assert.deepEqual(RobotLink.toWire(zero, NaN).duration, 1.0);
-  assert.deepEqual(RobotLink.toWire(zero, '').duration, 1.0);
-  assert.deepEqual(RobotLink.toWire(zero, 'quickly').duration, 1.0);
-
-  assert.deepEqual(RobotLink.toWire(zero, 2.5).duration, 2.5);
-  // While we are here: the wire is radians and metres, converted at the edge.
-  const w = RobotLink.toWire(
-    { head: { x: 10, y: 0, z: 0, roll: 0, pitch: 30, yaw: 0 }, antennas: [90, -90], bodyYaw: 0 },
-    0.6
-  );
-  assert.deepEqual(w.head_pose.pitch, 0.5235987755982988);
-  assert.deepEqual(w.head_pose.x, 0.01);
-  assert.deepEqual(w.antennas[0], 1.5707963267948966);
-});
-
-/**
- * BUG 2 (quest-ui.js): the "activity reached its goal" callback referenced the
- * finish button before it existed, so an activity that signalled completion
- * synchronously during render threw a ReferenceError and the quest never drew.
- * The fix has two halves and both must stay: the signal null-guards the
- * callback, and the callback is installed AFTER `finish` exists, then replayed
- * for a goal already reached. Asserted on the source because the alternative is
- * a full DOM for a 44 KB render function.
- */
-test('regression: the quest-ui completion callback is installed after the finish button', () => {
-  const src = readSource('assets/js/quest-ui.js');
-  const declared = src.indexOf('var reached = false, reachedFull = false, onReached = null;');
-  const guarded = src.indexOf('if (onReached) onReached(reachedFull);');
-  const finishBtn = src.indexOf("var finish = el('button'");
-  const installed = src.indexOf('onReached = function (full)');
-  const replayed = src.indexOf('if (reached) onReached(reachedFull);');
-
-  assert.ok(declared >= 0, 'the reached/onReached state must be declared up front');
-  assert.ok(guarded > declared, 'a synchronous signal must find onReached null-guarded');
-  assert.ok(finishBtn > 0 && installed > finishBtn,
-    'onReached must be assigned only after `finish` is created');
-  assert.ok(replayed > installed,
-    'a goal already reached must be replayed once the callback exists');
-});
+/* ── cross-module regression guards live with their own modules ─────────────
+ *
+ * The two known-and-fixed bugs — duration 0 collapsing to 1.0s, and the
+ * quest-ui completion callback referencing the finish button before it existed
+ * — are guarded in test/reachy.test.mjs ("toWire REGRESSION: ...") and
+ * test/actions.test.mjs ("quest-ui: a synchronous activity completion cannot
+ * reference the finish button early"). They are deliberately NOT duplicated
+ * here; this file owns progress.js.
+ * ========================================================================= */

@@ -1,7 +1,7 @@
 # Robot Lab — a growing robotics curriculum with live Reachy control
 
 **Issue:** [#7](https://github.com/doneyli/robo-kids/issues/7)
-**Status:** shipped — `ca5fa84` (feature) and `f25b2e4` (audit fixes)
+**Status:** shipped and verified — `ca5fa84` (feature), `f25b2e4` (audit fixes), `5d60abc` (227 tests)
 **Date:** 2026-07-26
 
 > **Reconciled with what shipped.** Two things changed during implementation and are corrected
@@ -95,8 +95,13 @@ talk about why you have two ears.
 
 ## Structure
 
-**6 seasons × 6 quests × 2 tracks = 72 quests.** One quest per kid per week ≈ 9 months, and the
-seasons deepen rather than repeat, which is what "grows with them" has to mean.
+**6 seasons × 6 quests × 2 tracks = 72 quests**, and the seasons deepen rather than repeat, which
+is what "grows with them" has to mean.
+
+> *Corrected after shipping:* "one quest per kid per week ≈ 9 months" was a naive 36 ÷ 4.33. A real
+> family year is ~30 sessions and some quests are not one session, so it is **14–21 months**. See
+> [CURRICULUM.md](../CURRICULUM.md), and [ADR 0002](../decisions/0002-tier-progression.md) for what
+> happens after.
 
 | Season | Theme | Little Explorer (4) learns | Young Builder (8) learns |
 |---|---|---|---|
@@ -118,7 +123,9 @@ Each quest is a data record, not a hand-written page:
   concepts[],       // Barefoot tags
   beyondRobotics,   // the cross-domain hook
   sayThis[],        // literal script — the thing that makes a parent able to teach
-  activity,         // {kind: 'buttons'|'sequence'|'dial'|'experiment'|'freeplay', ...}
+  activity,         // one of EIGHT kinds — buttons | sequence | dial | telemetry
+                    // | experiment | code | freeplay | offline. See docs/AUTHORING.md
+                    // for the required fields of each.
   unplugged,        // off-screen game for when the robot is charging
   wonder,           // the question you leave them with
   milestone,        // {strand, badge, title}
@@ -164,17 +171,34 @@ Safari clearing site data.
 
 ## Acceptance Criteria
 
-- [ ] `robot-lab/serve.sh` starts a static server on `:4200`, reachable from the iPad by LAN IP
-- [ ] No build step, no `node_modules`, no Python dependency for the app itself
-- [ ] `RobotLink` autodiscovers the robot (`reachy-mini.local`, then last-known IP), reports
-      `online | offline | simulated`, and starts the daemon backend if it is `stopped`
-- [ ] Every head/body command is clamped to the safety table above *before* the request
-- [ ] With the robot unplugged, every quest still completes against the simulator with no error UI
-- [ ] Age-4 track: no text required to complete a quest; all targets ≥48 px; instructions spoken
-- [ ] Age-8 track: can compose a ≥5-step sequence, run it on the robot, and view the equivalent Python
-- [ ] Badges persist across reload; export produces a re-importable JSON file
-- [ ] All 72 quests present in `curriculum.js` with every field populated
-- [ ] `README.md` points at Robot Lab; the earlier explorations are labelled superseded
+- [x] `robot-lab/serve.sh` starts a static server on `:4200`, reachable from the iPad by LAN IP
+      — verified from headless Chrome at `http://192.168.1.172:4200`
+- [x] No build step, no `node_modules`, no Python dependency for the app itself
+      — no `package.json` exists; the only Python is `http.server` in `serve.sh`
+- [x] `RobotLink` autodiscovers the robot (`reachy-mini.local`, then last-known IP), reports
+      **`unknown | online | simulated`**, and starts the daemon backend if it is `stopped`
+      — *the spec originally said `offline`, which the code never emits. Corrected to the real
+      enum (`reachy.js`); `reachy.test.mjs` asserts the fall-through and the `wake_up=false` param.*
+- [x] Every head/body command is clamped to the safety table above *before* the request
+      — `reachy.test.mjs` covers every axis at/inside/beyond both signs plus the coupled limit;
+      mutation-tested (widening pitch to 90° fails 6 tests). Confirmed on hardware by
+      `tools/live-robot.mjs`.
+- [x] With the robot unplugged, every quest still completes against the simulator with no error UI
+      — `integration.test.mjs` asserts every verb resolves while degraded and still emits the
+      `pose`/`emotion` events the drawing listens to
+- [x] Age-4 track: no text required to complete a quest; all targets ≥48 px; instructions spoken
+      — measured: tiles render 168 px; **nothing in the app is now below 44 px** (several
+      secondary controls were 40 px and one summary was 25 px until the a11y pass)
+- [x] Age-8 track: can compose a ≥5-step sequence, run it on the robot, and view the equivalent Python
+      — `b5-1` (6-step plan) and the seven `code` quests
+- [x] Badges persist across reload; export produces a re-importable JSON file
+      — `progress.test.mjs` plus `integration.test.mjs`, which also asserts a *stale* backup
+      cannot roll progress back
+- [x] All 72 quests present with every field populated — in **`quests-explorer.js` and
+      `quests-builder.js`** (36 each), aggregated by `CURRICULUM.all()`. *The spec originally
+      said `curriculum.js`, which holds only SEASONS/TRACKS/CONCEPTS and the aggregator.*
+      Enforced by `curriculum.test.mjs`.
+- [x] `README.md` points at Robot Lab; the earlier explorations are labelled superseded
 
 ## Test Strategy
 
