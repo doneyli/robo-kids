@@ -74,14 +74,21 @@ cd robot-lab && node tools/live-robot.mjs
 - Everything works without him — the on-screen robot mirrors every command, so a session with a
   4-year-old never dead-ends on a connection error
 
-## Earlier explorations
+## Earlier explorations (removed)
 
-Kept for reference; superseded by `robot-lab/` and no longer maintained.
+Two earlier attempts were deleted once `robot-lab/` superseded them. Their best ideas — a badge per
+mission, and pairing every screen activity with an unplugged one — were carried into the quest data.
 
-| Folder | What it was | Why it was superseded |
+| Folder | What it was | Why it lost |
 |---|---|---|
 | `robo-curriculum/` | 12-week Astro lesson-plan site | Good content, **no robot connection** — a website about robotics rather than a robotics session |
 | `roboquest/` | Next.js app + Python FastAPI/WebSocket bridge | Needed two runtimes babysat before a kid could press a button, and shipped a `mock_reachy.py` — it never drove the real robot |
 
-Their best ideas — a badge per mission, and pairing every screen activity with an unplugged one —
-were carried into the quest data.
+Both remain in git history and on their original branches:
+
+```bash
+git show bf7eefb --stat          # robo-curriculum as merged
+git show 4024cdb --stat          # roboquest as merged
+git show 4024cdb:roboquest/backend/server.py    # read one file without checking anything out
+git checkout origin/worktree-issue-1 -- roboquest   # or restore the whole thing
+```

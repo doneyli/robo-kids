@@ -165,7 +165,7 @@ Safari clearing site data.
 | `robot-lab/assets/css/lab.css` | New shared styling | Tablet-first |
 | `robot-lab/serve.sh` | New one-command LAN server on :4200 | Dad-proof launch |
 | `robot-lab/README.md` | New setup + troubleshooting | Sunday-morning reference |
-| `roboquest/`, `robo-curriculum/` | Left in place, marked superseded in the README | Removal was declined during implementation, so they are archived rather than deleted. Their best ideas were migrated into the quest data. |
+| `roboquest/`, `robo-curriculum/` | **Deleted** | Superseded. Removal was declined mid-implementation and then explicitly requested, so they were archived in place first and deleted afterwards. Recoverable from `4024cdb` / `bf7eefb` and the `worktree-issue-*` branches; their best ideas were migrated into the quest data. |
 | `README.md` | Rewritten around the one app | Repo no longer "three explorations" |
 | `CLAUDE.md` | Updated conventions + verified robot facts | So future sessions don't re-derive the API |
 
@@ -218,5 +218,7 @@ Safari clearing site data.
 - Emotion catalogue: live `GET /api/move/recorded-move-datasets/list/pollen-robotics%2Freachy-mini-emotions-library`
 - Request shapes: `GET http://reachy-mini.local:8000/openapi.json` (`GotoModelRequest`, `FullBodyTarget`, `XYZRPYPose`)
 - Interactive daemon docs: `http://reachy-mini.local:8000/docs`
-- Content worth migrating: `roboquest/src/lib/missions.ts` (badge/unplugged pattern),
-  `robo-curriculum/src/pages/{little-explorers,young-builders}/week-*.astro` (lesson structure)
+- Content that WAS migrated, from directories now deleted — read them with
+  `git show 4024cdb:roboquest/src/lib/missions.ts` (badge-per-mission and unplugged-activity
+  pattern) and `git show bf7eefb:robo-curriculum/src/pages/little-explorers/week-01.astro`
+  (lesson structure)

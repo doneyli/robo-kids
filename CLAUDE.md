@@ -3,9 +3,20 @@
 ## Overview
 Family robotics education project: teaching two sisters (ages 4 and 8) robotics with a Reachy Mini.
 
-**`robot-lab/` is the app.** Zero-build static site — 72 quests, 6 seasons, 2 age tracks, driving
-the real robot from the browser. `roboquest/` and `robo-curriculum/` are earlier explorations,
-superseded and unmaintained; do not add features to them.
+**`robot-lab/` is the app**, and the only one. Zero-build static site — 72 quests, 6 seasons, 2 age
+tracks, driving the real robot from the browser.
+
+Two earlier explorations (`roboquest/`, a Next.js app behind a Python WebSocket bridge; and
+`robo-curriculum/`, an Astro lesson-plan site with no robot connection) were **deleted** once this
+superseded them. Do not recreate either shape — in particular, do not reintroduce a proxy process:
+the whole point of ADR 0001 is that the robot's own daemon is the backend. Both are recoverable if
+you ever need to read them:
+
+```bash
+git show 4024cdb --stat     # roboquest as merged
+git show bf7eefb --stat     # robo-curriculum as merged
+git checkout origin/worktree-issue-1 -- roboquest    # restore one wholesale
+```
 
 ## Verified robot facts — do not re-derive these
 

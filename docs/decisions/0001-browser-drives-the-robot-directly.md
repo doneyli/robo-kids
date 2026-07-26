@@ -2,6 +2,11 @@
 
 **Status:** accepted · **Date:** 2026-07-26 · **Supersedes:** the `roboquest/` bridge architecture
 
+> `roboquest/` and `robo-curriculum/` are referenced throughout as rejected alternatives. Both
+> directories were **deleted** from the working tree once this decision shipped; they survive in git
+> at `4024cdb` and `bf7eefb` and on the `worktree-issue-*` branches. The references below are
+> deliberate historical record — the point of an ADR is what was rejected and why.
+
 ## Context
 
 The goal is interactive robotics experiences a 4-year-old and an 8-year-old can open on an iPad,
