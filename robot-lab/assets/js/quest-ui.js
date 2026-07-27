@@ -792,6 +792,7 @@
     });
     wrap.appendChild(list);
 
+    if (a.robotApp) wrap.appendChild(buildRobotApp(a.robotApp, ctx, done));
     if (a.listen) wrap.appendChild(buildListener(ctx));
 
     if (a.observe) {
@@ -805,6 +806,100 @@
       wrap.appendChild(ta);
     }
     return wrap;
+  }
+
+  /**
+   * Hand the robot over to an on-robot app for the duration of an activity.
+   *
+   * This is the only route to his camera and microphone — the daemon has no
+   * frame or audio-in endpoint, and macOS cannot be a remote WebRTC media
+   * client. See docs/decisions/0003-eyes-and-voice.md.
+   *
+   * Degrades with an explanation rather than a dead button, because "not
+   * installed" needs a one-time HuggingFace login on the robot and a child
+   * should not be staring at a control that silently does nothing.
+   */
+  function buildRobotApp(cfg, ctx, done) {
+    var host = el('div');
+    host.appendChild(el('div', 'divider'));
+    host.appendChild(el('div', 'eyebrow', 'Use his real camera'));
+    host.appendChild(el('p', 'small', cfg.blurb ||
+      'This hands the robot over to a program running on HIM, so he can use his own eye.'));
+
+    var status = el('p', 'small muted', '');
+    var row = el('div', 'row');
+
+    var startBtn = el('button', 'btn btn-primary', '👁️  ' + (cfg.label || 'Start it'));
+    startBtn.type = 'button';
+    var stopBtn = el('button', 'btn btn-sm', '⏹  Give him back');
+    stopBtn.type = 'button';
+    stopBtn.disabled = true;
+
+    startBtn.addEventListener('click', function () {
+      startBtn.disabled = true;
+      status.textContent = 'Starting ' + cfg.app + ' on the robot…';
+      ctx.link.startApp(cfg.app).then(function (r) {
+        if (r.ok) {
+          status.textContent = 'Running. ' + (cfg.hint || 'Move your hand slowly in front of him.');
+          stopBtn.disabled = false;
+          done(true);
+          return;
+        }
+        startBtn.disabled = false;
+        if (r.reason === 'offline') {
+          status.textContent = 'He is not connected, so there is no camera to use.';
+        } else if (r.reason === 'not-installed') {
+          status.textContent = '"' + cfg.app + '" is not installed on the robot yet. Installed: ' +
+            ((r.installed || []).join(', ') || 'none') +
+            '. Installing it needs a one-time HuggingFace login on his dashboard — ' +
+            'see docs/decisions/0003-eyes-and-voice.md.';
+        } else {
+          status.textContent = 'Could not start it: ' + r.reason;
+        }
+      });
+    });
+
+    stopBtn.addEventListener('click', function () {
+      stopBtn.disabled = true;
+      status.textContent = 'Stopping…';
+      ctx.link.stopApp().then(function () {
+        status.textContent = 'Stopped. He is yours again.';
+        startBtn.disabled = false;
+      });
+    });
+
+    row.appendChild(startBtn);
+    row.appendChild(stopBtn);
+    host.appendChild(row);
+    host.appendChild(status);
+
+    // Say up front whether this will work, rather than after a failed tap.
+    //
+    // Wait for the connection first: listApps() returns [] while status is still
+    // 'unknown', which produced a confidently wrong "no apps installed" on a
+    // robot that had two.
+    var ready = ctx.link.status === 'online'
+      ? Promise.resolve()
+      : (ctx.link._connecting || Promise.resolve());
+
+    ready.then(function () {
+      if (ctx.link.status !== 'online') {
+        status.textContent = 'He is not connected, so his camera is not available.';
+        return;
+      }
+      return ctx.link.listApps().then(function (apps) {
+        var names = apps.map(function (x) { return x.name; });
+        if (names.indexOf(cfg.app) >= 0) {
+          status.textContent = 'Ready — "' + cfg.app + '" is installed on him.';
+        } else {
+          status.textContent = 'Not installed on him yet' +
+            (names.length ? ' (he has: ' + names.join(', ') + ')' : '') +
+            '. Tap the button and it will tell you how.';
+        }
+      });
+    });
+
+    return host;
   }
 
   /**

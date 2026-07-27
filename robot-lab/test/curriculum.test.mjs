@@ -417,9 +417,12 @@ test('every probe endpoint is an absolute daemon API path', () => {
 
 // ══ The action DSL ════════════════════════════════════════════════════════
 
-test('the interpreter implements exactly the thirteen documented verbs', () => {
+test('the interpreter implements exactly the fourteen documented verbs', () => {
+  // Adding a verb must be a deliberate act with a docs update, not something
+  // that slips in — this test exists to fail when the two drift apart, and it
+  // has already done so once (`app`).
   assert.deepEqual([...VERBS].sort(),
-    ['burst', 'center', 'emotion', 'gesture', 'motors', 'pose', 'repeat',
+    ['app', 'burst', 'center', 'emotion', 'gesture', 'motors', 'pose', 'repeat',
       'say', 'sleep', 'stop', 'volume', 'wait', 'wake']);
 });
 

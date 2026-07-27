@@ -435,7 +435,17 @@
         { text: 'Now the other side', emoji: '➡️', do: 'gesture:lookRight' },
         { text: 'Hide! Then pop out', emoji: '🫣', do: 'emotion:surprised1' }
       ],
-      observe: 'How did he know where your face was?'
+      // The steps above are Dad moving him on cue — a good game, but it is not
+      // the robot seeing her. This hands him over to an on-robot program that
+      // uses his actual camera, which is the only way to reach it.
+      robotApp: {
+        app: 'hand_tracker_v2',
+        label: 'Let him find your hand',
+        blurb: 'Now the real thing: a program running on the robot uses his own camera to ' +
+               'find your hand and follow it. Nothing is sent anywhere — the looking happens inside him.',
+        hint: 'Hold your hand up about half a metre away and move it slowly. Then hide it.'
+      },
+      observe: 'How did he know where your hand was?'
     },
     unplugged: {
       title: 'Face or not a face?',
@@ -444,7 +454,7 @@
     },
     wonder: 'Would he think a drawing of a face is a real face?',
     milestone: { strand: 'senses', badge: 'peek-a-boo', title: 'Peek-a-boo' },
-    dadNote: 'start_head_tracking() runs detection on the robot itself and aims at the nose. It will absolutely track a drawing — and that gap between detecting and understanding is the whole of Season 6.'
+    dadNote: 'The SDK has a start_head_tracking() that runs face detection on the robot itself — but it is NOT reachable over the REST API this app uses (no endpoint exists; I checked all 77). Real camera work therefore means running a program ON the robot, which is what the button does. Either way it will happily track a drawing of a face, and that gap between detecting and understanding is the whole of Season 6.'
   });
 
   Q.push({

@@ -115,16 +115,78 @@ on-robot service has to be installed by hand once. The CM4 is weak — camera ca
 encoding on it is the part most likely to disappoint, and it should be measured before anything is
 designed around it.
 
-## Vision, specifically
+## Vision, specifically — and a correction
 
-Two things are worth separating:
+I first claimed `start_head_tracking()` was "a handful of lines" from the browser. **That was wrong,
+and so was my fallback suggestion.** Both were checked and both failed:
 
-- **`start_head_tracking()` already exists in the SDK and runs entirely on the robot.** He can find
-  and follow a face with no Mac involved and no frames leaving him. This is the cheapest possible
-  "he sees me" moment and it is not wired up yet — it should be, before any of stage 3. It is a
-  handful of lines and it is the single biggest engagement win available.
-- **Frames reaching the Mac** for anything else — object recognition, a VLM, "what am I holding?" —
-  requires the on-robot service above.
+| Attempt | Result |
+|---|---|
+| A head-tracking REST endpoint | **None exists.** 77 paths in the daemon; nothing matching track/face/detect. Nine likely routes probed by hand — all 404/405. |
+| A WebSocket for it | Only two exist (`/api/apps/ws/apps-manager/{job}`, `/api/move/ws/updates`), neither related. |
+| `GET /api/state/doa` to follow her voice instead | **Returns a constant.** Held at exactly 69.0° with `speech_detected: false` across 36 samples, including while his own speaker was playing speech at volume 90. `state/full.doa` is `null`. It is a placeholder over REST; real DoA needs `mini.media.get_DoA()` in the SDK. |
+
+`start_head_tracking()` is real, and detection really does run on the robot — but it is an SDK
+method, and the SDK reaches the daemon by a transport that is not this REST API. From a browser it
+is unreachable.
+
+### What actually works: on-robot apps
+
+The daemon can **install and run Python apps on the robot, over this same REST API**:
+
+```
+GET  /api/apps/list-available              ~40 community apps
+GET  /api/apps/list-available/installed
+POST /api/apps/install                     AppInfo body; returns a job_id
+GET  /api/apps/job-status/{job_id}
+POST /api/apps/start-app/{app_name}
+POST /api/apps/stop-current-app
+```
+
+Directly relevant ones: **`hand_tracker_v2`** ("Reachy Mini follows your hand!"), **`clawbody`**
+("robot body and face tracking"), **`baby-reachy-mini-companion`** ("a fully local AI companion for
+babies and kids"), **`reachy_mini_reactions`** ("on-device AI response to your voice"), and
+**`reachy_mini_conversation_app`** — which is *already installed* on this robot, alongside
+`coding_lab`.
+
+Two things verified by experiment:
+
+- **Starting an already-installed app works over REST with no authentication.** `coding_lab` went
+  `starting` → `running` and stopped cleanly.
+- **Our own commands keep working while an app runs** — a `goto` returned 200 with `coding_lab`
+  active. So handing him over is not one-way.
+
+### The one blocker, and it is not ours
+
+Installing a *new* app fails:
+
+```
+Downloading HuggingFace Space: pollen-robotics/hand_tracker_v2
+Cannot access space ...: 401 Client Error
+Access denied. Please check your HuggingFace token permissions.
+```
+
+`GET /api/hf-auth/status` → `{"is_logged_in": false, "username": null}`.
+
+**The robot is not logged in to HuggingFace.** Public *datasets* work — that is why the 81 emotions
+play — but Spaces need a token. OAuth is configured (`/api/hf-auth/oauth/configured` → true), so it
+is a browser sign-in on his own dashboard at `http://reachy-mini.local:8000`. That is an account
+login, so it is Don's to do, once.
+
+After that, `hand_tracker_v2` installs and starts over REST and the button in quest e3-2 lights up.
+
+### Wired up now, ready for that moment
+
+- `RobotLink.listApps() / appStatus() / startApp() / stopApp()`
+- an `app:<name>` / `app:stop` verb in the action DSL
+- a `robotApp` block on the `experiment` activity kind, used by quest **e3-2 "Peek-a-boo"**
+
+It degrades with an accurate, actionable message rather than a dead button — verified on the live
+robot, where it correctly reported *"hand_tracker_v2 is not installed on the robot yet. Installed:
+reachy_mini_conversation_app, coding_lab. Installing it needs a one-time HuggingFace login."*
+
+**Frames reaching the Mac** for anything else — object recognition, a VLM, "what am I holding?" —
+still requires the custom on-robot service in stage 3.
 
 ## Decision
 

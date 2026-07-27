@@ -570,6 +570,56 @@
     }, function () { return null; });
   };
 
+  // ── On-robot apps ─────────────────────────────────────────────────────────
+  //
+  // Anything needing the camera or microphone cannot be done from here: the
+  // daemon exposes no frame and no audio-in endpoint, and macOS is not supported
+  // as a remote WebRTC media client. But the daemon CAN install and run Python
+  // apps on the robot itself, over this same REST API — and, verified, our
+  // commands keep working while one runs.
+  //
+  // So "he follows your hand" is not something this app does; it is something it
+  // LAUNCHES. See docs/decisions/0003-eyes-and-voice.md.
+
+  RobotLink.prototype.listApps = function () {
+    if (this.status !== 'online') return Promise.resolve([]);
+    return this._fetch('/api/apps/list-available/installed', null, 12000)
+      .then(function (r) { return Array.isArray(r) ? r : []; }, function () { return []; });
+  };
+
+  RobotLink.prototype.appStatus = function () {
+    if (this.status !== 'online') return Promise.resolve(null);
+    return this._fetch('/api/apps/current-app-status', null, 6000)
+      .catch(function () { return null; });
+  };
+
+  /**
+   * Start an installed app. Resolves {ok, state} or {ok:false, reason} — never
+   * rejects, because a missing app must produce an explanation on screen rather
+   * than a dead button.
+   */
+  RobotLink.prototype.startApp = function (name) {
+    var self = this;
+    if (this.status !== 'online') {
+      return Promise.resolve({ ok: false, reason: 'offline' });
+    }
+    return this.listApps().then(function (apps) {
+      var have = apps.some(function (a) { return a.name === name; });
+      if (!have) {
+        return { ok: false, reason: 'not-installed', installed: apps.map(function (a) { return a.name; }) };
+      }
+      return self._fetch('/api/apps/start-app/' + encodeURIComponent(name), { method: 'POST' }, 30000)
+        .then(function (r) { return { ok: true, state: (r && r.state) || 'starting' }; },
+              function (e) { return { ok: false, reason: e.message }; });
+    });
+  };
+
+  RobotLink.prototype.stopApp = function () {
+    if (this.status !== 'online') return Promise.resolve({ ok: false, reason: 'offline' });
+    return this._fetch('/api/apps/stop-current-app', { method: 'POST' }, 20000)
+      .then(function () { return { ok: true }; }, function (e) { return { ok: false, reason: e.message }; });
+  };
+
   RobotLink.prototype.cameraSpecs = function () {
     if (this.status !== 'online') return Promise.resolve(null);
     return this._fetch('/api/camera/specs', null, 6000).catch(function () { return null; });

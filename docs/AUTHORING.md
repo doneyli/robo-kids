@@ -79,10 +79,11 @@ without the parser getting confused.
 | `pose:` | `x y z roll pitch yaw bodyYaw antennas duration interpolation` | degrees and mm; `antennas=70,-70`; default interpolation `cartoon` |
 | `motors:` | `enabled` `disabled` `gravity_compensation` | `gravity_compensation` is hand-guiding |
 | `volume:` | `0`–`100` | |
-| `say:` | any text | **tablet** speech, not the robot. Optional `\|pitch=1.4&rate=0.8` |
+| `say:` | any text | Prefers the **robot's** speaker if the line has been baked (`tools/bake-voice.mjs`); falls back to tablet speech. `\|pitch=1.4&rate=0.8` forces the tablet, since a pre-rendered file cannot change pitch. |
 | `wait:` | milliseconds | |
 | `burst:` | `yaw` or `antennas` | rapid `set_target` chain, to contrast with `goto` |
-| `repeat:` | `n` | **must be followed by `\|` and something to repeat.** A bare `repeat:3` is skipped. Capped at 20. |
+| `repeat:` | `n` | Prefixed (`repeat:3\|gesture:nod`) repeats the rest 3 times. **Bare** (`repeat:3` alone in a sequence) repeats everything before it, 3 passes total. Capped at 20. |
+| `app:` | app name, or `stop` | Hands the robot to an on-robot Python app — the **only** route to his camera or microphone. `app:stop` gives him back. See [ADR 0003](decisions/0003-eyes-and-voice.md). |
 
 ```js
 do: 'gesture:spin'
@@ -142,10 +143,20 @@ activity: {
   kind: 'experiment', prompt: 'Compare goto and set_target.',
   steps: [ { text: 'Smooth goto over 2 seconds', emoji: '🌊', do: 'pose:yaw=40&duration=2.0' } ],
   listen: true,          // adds speech recognition, where the browser supports it
+  robotApp: {            // hands him to an on-robot app — the ONLY route to his camera
+    app: 'hand_tracker_v2',
+    label: 'Let him find your hand',
+    blurb: 'what this does, in a sentence',
+    hint: 'what to do once it is running'
+  },
   observe: 'Which one looked more alive, and why?'
 }
 ```
 A step with no `do` is a hands-on instruction — tapping it just marks it done.
+
+`robotApp` degrades with an on-screen explanation if the app is not installed, and says so *before*
+the button is tapped rather than after. Installing a new app needs a one-time HuggingFace login on
+the robot — see [ADR 0003](decisions/0003-eyes-and-voice.md).
 
 ### `telemetry` — read what the robot actually reports
 ```js

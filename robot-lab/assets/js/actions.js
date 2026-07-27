@@ -161,6 +161,15 @@
           case 'wait': return wait(parseInt(s.payload, 10) || 0);
           case 'burst': return burst(link, s.payload || 'yaw');
 
+          // Hand the robot over to an on-robot app — the only way to reach the
+          // camera or microphone. `app:stop` gives him back.
+          case 'app':
+            if (s.payload === 'stop') return link.stopApp();
+            return link.startApp(s.payload).then(function (r) {
+              if (!r.ok) console.warn('[robotlab] app ' + s.payload + ': ' + r.reason);
+              return r;
+            });
+
           case 'repeat': return Promise.resolve();   // the caller expands this
 
           default:
