@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "robot-lab",
+      "runtimeExecutable": "./serve.sh",
+      "runtimeArgs": ["4200"],
+      "cwd": "robot-lab",
+      "port": 4200,
+      "url": "http://localhost:4200"
+    }
+  ]
+}

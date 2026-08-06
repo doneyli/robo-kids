@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Young Builder">
+<meta name="theme-color" content="#fbf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161d" media="(prefers-color-scheme: dark)">
+<title>Young Builder · Robot Lab</title>
+<link rel="stylesheet" href="../assets/css/lab.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+</head>
+<body>
+
+<main class="wrap">
+  <div class="stage">
+    <div class="stage-robot">
+      <div id="robotStage"></div>
+    </div>
+    <div id="view"></div>
+  </div>
+</main>
+
+<script src="../assets/js/reachy.js"></script>
+<script src="../assets/js/sim.js"></script>
+<script src="../assets/js/speak.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/actions.js"></script>
+<script src="../assets/data/emotions.js"></script>
+<script src="../assets/data/quests-explorer.js"></script>
+<script src="../assets/data/quests-builder.js"></script>
+<script src="../assets/data/curriculum.js"></script>
+<script src="../assets/js/lab.js"></script>
+<script src="../assets/js/quest-ui.js"></script>
+<script src="../assets/js/track.js"></script>
+<script>
+  Track.start({ track: 'builder', title: 'Young Builder', emoji: '🛠️', speech: true });
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+    "type": "daemon_status",
+    "robot_name": "reachy_mini",
+    "state": "running",
+    "wireless_version": true,
+    "desktop_app_daemon": false,
+    "simulation_enabled": false,
+    "mockup_sim_enabled": false,
+    "no_media": false,
+    "media_released": false,
+    "camera_specs_name": "wireless",
+    "backend_status": {
+        "ready": false,
+        "motor_control_mode": "enabled",
+        "last_alive": null,
+        "control_loop_stats": {
+            "mean_control_loop_frequency": 10.263004374017708,
+            "max_control_loop_interval": 0.2469959259033203,
+            "nb_error": 0,
+            "motor_controller": "ControlLoopStats(period=~20.00ms, read_dt=~2.47 ms, write_dt=~0.07 ms)"
+        },
+        "error": null
+    },
+    "error": null,
+    "wlan_ip": "192.168.1.15",
+    "version": "1.6.3"
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Robot Lab">
+<meta name="theme-color" content="#fbf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161d" media="(prefers-color-scheme: dark)">
+<title>Robot Lab</title>
+<link rel="stylesheet" href="assets/css/lab.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+</head>
+<body>
+
+<main class="wrap">
+
+  <div class="hero">
+    <div style="font-size:4.4rem;line-height:1">🤖</div>
+    <h1>Robot Lab</h1>
+    <p class="sub">A robotics curriculum for two sisters and one Reachy Mini.
+      Six seasons, seventy-two quests, and a robot that actually moves.</p>
+  </div>
+
+  <div id="robotStage" style="margin:0 auto 26px;max-width:280px"></div>
+
+  <section class="picker" id="picker"></section>
+
+  <section class="card" style="margin-top:26px">
+    <div class="eyebrow">This week</div>
+    <div id="thisWeek" class="grid-2"></div>
+  </section>
+
+  <details class="card card-tight" style="margin-top:18px">
+    <summary>🔌  Robot not connecting?</summary>
+    <p class="small" style="margin-top:10px">Everything in here works without him — the on-screen
+      robot mirrors every command, so a session never has to be cancelled.</p>
+    <p class="small"><strong>When you do want the real thing:</strong></p>
+    <ol class="small">
+      <li>Power him on and give him about a minute to join the wifi.</li>
+      <li>Make sure this device is on the same network.</li>
+      <li>Tap the chip in the top right to retry.</li>
+      <li>Still nothing? Open <code>http://reachy-mini.local:8000</code> in a new tab. If his
+        dashboard loads, the robot is fine and it is this page that cannot see him.</li>
+    </ol>
+    <p class="small muted">This page must be served over plain <code>http://</code>, not
+      <code>https://</code>. A secure page is not allowed to talk to an insecure robot, and the
+      robot does not do HTTPS. That is what <code>serve.sh</code> is for.</p>
+  </details>
+
+</main>
+
+<script src="assets/js/reachy.js"></script>
+<script src="assets/js/sim.js"></script>
+<script src="assets/js/speak.js"></script>
+<script src="assets/js/progress.js"></script>
+<script src="assets/js/actions.js"></script>
+<script src="assets/data/emotions.js"></script>
+<script src="assets/data/quests-explorer.js"></script>
+<script src="assets/data/quests-builder.js"></script>
+<script src="assets/data/curriculum.js"></script>
+<script src="assets/js/lab.js"></script>
+<script>
+(function () {
+  'use strict';
+  var el = Lab.el;
+  var ctx = Lab.boot({ title: 'Robot Lab', emoji: '🤖', home: 'index.html', simMount: '#robotStage' });
+  var all = CURRICULUM.all();
+
+  var CARDS = [
+    { id: 'explorer', href: 'explorer/index.html', cls: 'pick-explorer' },
+    { id: 'builder', href: 'builder/index.html', cls: 'pick-builder' }
+  ];
+
+  var picker = document.getElementById('picker');
+
+  CARDS.forEach(function (c) {
+    var t = CURRICULUM.TRACKS[c.id];
+    var stats = ctx.progress.stats(c.id, all);
+    var next = ctx.progress.nextQuest(c.id, all);
+    var kid = ctx.progress.kid(c.id);
+
+    var a = el('a', 'pick ' + c.cls);
+    a.href = c.href;
+    a.appendChild(el('span', 'pe', t.emoji));
+    a.appendChild(el('div', 'pt', kid.name && kid.name !== c.id ? kid.name : t.label));
+    a.appendChild(el('div', 'pa', 'ages ' + t.ages + ' · ' + t.minutes + ' minutes'));
+    a.appendChild(el('div', 'pb', t.blurb));
+    var f = el('div', 'pnext');
+    f.textContent = next
+      ? 'Next: ' + next.emoji + ' ' + next.title
+      : 'All ' + stats.total + ' quests finished 🎉';
+    a.appendChild(f);
+    var p = el('div', 'tiny muted');
+    p.textContent = stats.completed + '/' + stats.total + ' quests · ' + stats.badges + ' badges';
+    a.appendChild(p);
+    picker.appendChild(a);
+  });
+
+  var pa = el('a', 'pick pick-parent');
+  pa.href = 'parent/index.html';
+  pa.appendChild(el('span', 'pe', '🧑‍🔬'));
+  pa.appendChild(el('div', 'pt', 'Dad'));
+  pa.appendChild(el('div', 'pa', 'plan · progress · what to say'));
+  pa.appendChild(el('div', 'pb',
+    'The scripts, the big ideas, what each quest teaches, and the notes you took. Plus badge backup.'));
+  var pf = el('div', 'pnext');
+  pf.textContent = 'Read this before a session →';
+  pa.appendChild(pf);
+  picker.appendChild(pa);
+
+  // "This week" — the same season on both tracks, side by side.
+  var week = document.getElementById('thisWeek');
+  var nE = ctx.progress.nextQuest('explorer', all);
+  var nB = ctx.progress.nextQuest('builder', all);
+  [['explorer', nE], ['builder', nB]].forEach(function (pair) {
+    var t = CURRICULUM.TRACKS[pair[0]], q = pair[1];
+    var box = el('div');
+    box.appendChild(el('div', 'eyebrow', t.emoji + ' ' + t.label));
+    if (!q) { box.appendChild(el('p', 'muted small', 'Finished the whole curriculum.')); }
+    else {
+      var s = CURRICULUM.season(q.season);
+      box.appendChild(el('h3', null, q.emoji + '  ' + q.title));
+      box.appendChild(el('p', 'small muted', 'Season ' + s.n + ' · ' + s.title));
+      box.appendChild(el('p', 'small', q.bigIdea));
+      var go = el('a', 'btn btn-sm');
+      go.href = pair[0] + '/index.html?quest=' + q.id;
+      go.textContent = 'Open →';
+      box.appendChild(go);
+    }
+    week.appendChild(box);
+  });
+
+  if (nE && nB && nE.season === nB.season) {
+    var note = el('p', 'small muted');
+    note.style.gridColumn = '1 / -1';
+    note.textContent = 'Both girls are in Season ' + nE.season + ' — ' +
+      CURRICULUM.season(nE.season).title + '. Same theme, different rung, so they can compare notes.';
+    week.appendChild(note);
+  }
+})();
+</script>
+</body>
+</html>

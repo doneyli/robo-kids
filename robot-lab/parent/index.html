@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fbf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161d" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Dad · Robot Lab</title>
+<link rel="stylesheet" href="../assets/css/lab.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧑‍🔬</text></svg>">
+</head>
+<body>
+
+<main class="wrap wrap-wide">
+  <div style="padding:22px 0 6px">
+    <div class="eyebrow">Robot Lab</div>
+    <h1>🧑‍🔬  Dad's side</h1>
+    <p class="muted">What to say, what it teaches, where they are, and how to not lose it.</p>
+  </div>
+
+  <section class="card">
+    <div class="eyebrow">Robot</div>
+    <div id="robotPanel"></div>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">This weekend</div>
+    <h2>Session plan</h2>
+    <div id="plan" class="grid-2"></div>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">Progress</div>
+    <h2>Where they are</h2>
+    <div id="progress"></div>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">Curriculum</div>
+    <h2>All 72 quests</h2>
+    <p class="small muted">Every quest, with the concept it exercises and the note for you.
+      Tap a title to open it in the kid's view.</p>
+    <div id="browse"></div>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">Notes</div>
+    <h2>What they said</h2>
+    <div id="notes"></div>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">Backup</div>
+    <h2>Do not lose nine months of Sundays</h2>
+    <p class="small">Progress lives in this browser's local storage. Clearing Safari's website
+      data erases it. Export every few weeks and keep the file in iCloud or the repo.</p>
+    <div class="row">
+      <button class="btn btn-primary" id="exportBtn" type="button">⬇  Export progress</button>
+      <button class="btn" id="importBtn" type="button">⬆  Import a backup</button>
+      <input type="file" id="importFile" accept="application/json" class="sr" tabindex="-1" aria-hidden="true">
+      <button class="btn btn-sm btn-ghost" id="resetBtn" type="button">Reset everything</button>
+    </div>
+    <p class="tiny muted" id="backupInfo"></p>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">Names</div>
+    <div class="row" id="names"></div>
+  </section>
+
+  <details class="card card-tight">
+    <summary>🛠️  How this actually works</summary>
+    <div class="small" style="margin-top:12px">
+      <p>The page talks straight to the robot. There is no server of ours in the middle — the
+        Reachy Mini daemon runs a web API on port 8000 and answers cross-origin requests, so a
+        static HTML file is a legitimate robot client.</p>
+      <p><strong>Every command goes through one of these:</strong></p>
+      <pre class="wire">POST /api/move/goto              head pose, antennas, body yaw, duration
+POST /api/move/set_target        instant target, for realtime control
+POST /api/move/play/wake_up      and /goto_sleep
+POST /api/move/play/recorded-move-dataset/{dataset}/{move}
+POST /api/motors/set_mode/{enabled|disabled|gravity_compensation}
+POST /api/volume/set
+GET  /api/state/full             live pose, antennas, control mode, DoA
+GET  /api/daemon/status          is the backend running?</pre>
+      <p>Angles are radians and distances metres on the wire. The app works in degrees and
+        millimetres and converts at the last moment, in
+        <code>assets/js/reachy.js</code>.</p>
+      <p><strong>Safety.</strong> Head pitch and roll are clamped to ±40°, head yaw ±180°, body
+        yaw ±160°, and head-minus-body yaw to 65°. That last one is a coupled limit — each axis
+        can be legal while the pair is not. Clamping happens before the request is built, so the
+        on-screen robot and the real one always agree.</p>
+      <p><strong>Full API docs</strong> live on the robot itself, at
+        <code>http://reachy-mini.local:8000/docs</code>, whenever he is powered on.</p>
+    </div>
+  </details>
+
+</main>
+
+<script src="../assets/js/reachy.js"></script>
+<script src="../assets/js/sim.js"></script>
+<script src="../assets/js/speak.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/actions.js"></script>
+<script src="../assets/data/emotions.js"></script>
+<script src="../assets/data/quests-explorer.js"></script>
+<script src="../assets/data/quests-builder.js"></script>
+<script src="../assets/data/curriculum.js"></script>
+<script src="../assets/js/lab.js"></script>
+<script>
+(function () {
+  'use strict';
+  var el = Lab.el;
+  var ctx = Lab.boot({ title: 'Robot Lab', emoji: '🤖', home: '../index.html' });
+  var all = CURRICULUM.all();
+  var TRACKS = ['explorer', 'builder'];
+
+  // ── Robot panel: a direct-control strip, so Don can sanity-check hardware
+  //    before handing a tablet to a child.
+  (function robotPanel() {
+    var host = document.getElementById('robotPanel');
+    var status = el('p', 'small muted', 'Looking for the robot…');
+    host.appendChild(status);
+
+    function paint() {
+      if (ctx.link.status === 'online') {
+        status.textContent = 'Connected to ' + ctx.link.host + ':8000 — daemon v' +
+          ctx.link.version + '. Commands below hit the real robot.';
+      } else {
+        status.textContent = 'No robot found. The buttons below will still run, but only on screen. ' +
+          'Tap the chip at the top right to retry.';
+      }
+    }
+    ctx.link.on('status', paint);
+    paint();
+
+    var row = el('div', 'row');
+    [
+      ['☀️ Wake', 'wake'], ['🌙 Sleep', 'sleep'], ['🎯 Centre', 'center'],
+      ['↕️ Nod', 'gesture:nod'], ['📡 Wiggle', 'gesture:wiggle'], ['🌀 Spin', 'gesture:spin'],
+      ['😊 Happy', 'emotion:cheerful1'], ['🤔 Curious', 'emotion:curious1'],
+      ['🪢 Floppy', 'motors:gravity_compensation'], ['💪 Stiff', 'motors:enabled'],
+      ['⏹ Stop', 'stop']
+    ].forEach(function (p) {
+      var b = el('button', 'btn btn-sm', p[0]);
+      b.type = 'button';
+      b.addEventListener('click', function () {
+        b.disabled = true;
+        ctx.run(p[1]).then(function () { b.disabled = false; });
+      });
+      row.appendChild(b);
+    });
+    host.appendChild(row);
+
+    var readRow = el('div', 'row');
+    readRow.style.marginTop = '12px';
+    var pre = el('pre', 'wire');
+    pre.textContent = 'Tap "read state" for live telemetry.';
+    var rb = el('button', 'btn btn-sm', '📡  Read state');
+    rb.type = 'button';
+    rb.addEventListener('click', function () {
+      ctx.link.readState().then(function (s) {
+        if (!s) { pre.textContent = 'No robot connected — nothing real to read.'; return; }
+        pre.textContent = JSON.stringify({
+          head_deg: {
+            pitch: +s.head.pitch.toFixed(2), roll: +s.head.roll.toFixed(2), yaw: +s.head.yaw.toFixed(2),
+            x_mm: +s.head.x.toFixed(1), y_mm: +s.head.y.toFixed(1), z_mm: +s.head.z.toFixed(1)
+          },
+          body_yaw_deg: +s.bodyYaw.toFixed(2),
+          antennas_deg: s.antennas.map(function (a) { return +a.toFixed(1); }),
+          control_mode: s.controlMode,
+          doa: s.doa
+        }, null, 2);
+      });
+    });
+    var em = el('button', 'btn btn-sm', '🎭  List his emotions');
+    em.type = 'button';
+    em.addEventListener('click', function () {
+      ctx.link.listEmotions().then(function (list) {
+        pre.textContent = list.length + ' recorded moves:\n\n' + list.join(', ');
+      });
+    });
+    readRow.appendChild(rb);
+    readRow.appendChild(em);
+    host.appendChild(readRow);
+    host.appendChild(pre);
+  })();
+
+  // ── Session plan
+  (function plan() {
+    var host = document.getElementById('plan');
+    TRACKS.forEach(function (t) {
+      var meta = CURRICULUM.TRACKS[t];
+      var q = ctx.progress.nextQuest(t, all);
+      var box = el('div');
+      box.appendChild(el('div', 'eyebrow', meta.emoji + ' ' + meta.label + ' · ' + meta.minutes + ' min'));
+      if (!q) { box.appendChild(el('p', 'muted', 'Curriculum complete.')); host.appendChild(box); return; }
+      var s = CURRICULUM.season(q.season);
+      box.appendChild(el('h3', null, q.emoji + '  ' + q.title));
+      box.appendChild(el('p', 'tiny muted', 'Season ' + s.n + ' · ' + s.title + ' · ' + q.activity.kind));
+      box.appendChild(el('p', 'small', q.bigIdea));
+
+      box.appendChild(el('div', 'eyebrow', 'Open with'));
+      var ul = el('ul', 'small');
+      q.sayThis.slice(0, 2).forEach(function (l) { ul.appendChild(el('li', null, l)); });
+      box.appendChild(ul);
+
+      box.appendChild(el('div', 'eyebrow', 'Off screen · ' + q.unplugged.minutes + ' min'));
+      box.appendChild(el('p', 'small', q.unplugged.title + ' — ' + q.unplugged.how));
+
+      box.appendChild(el('div', 'eyebrow', 'For you'));
+      box.appendChild(el('p', 'small muted', q.dadNote));
+
+      var go = el('a', 'btn btn-sm btn-primary');
+      go.href = '../' + t + '/index.html?quest=' + q.id;
+      go.textContent = 'Start this quest →';
+      box.appendChild(go);
+      host.appendChild(box);
+    });
+  })();
+
+  // ── Progress: strands + season grid + badges
+  (function progress() {
+    var host = document.getElementById('progress');
+    TRACKS.forEach(function (t) {
+      var meta = CURRICULUM.TRACKS[t];
+      var stats = ctx.progress.stats(t, all);
+      var tally = ctx.progress.strandTally(t, CURRICULUM.track(t));
+      var kid = ctx.progress.kid(t);
+
+      var box = el('div');
+      box.style.marginBottom = '26px';
+      box.appendChild(el('h3', null, meta.emoji + '  ' +
+        (kid.name && kid.name !== t ? kid.name : meta.label) + ' — ' +
+        stats.completed + '/' + stats.total + ' quests, ' + stats.badges + ' badges'));
+      // Cadence and years-active, not a streak. Over a multi-year project a
+      // streak counter is a punishment meter; these two are not.
+      var c = stats.cadence;
+      box.appendChild(el('p', 'small muted',
+        'Pace: ' + c.weeksActive + ' active week' + (c.weeksActive === 1 ? '' : 's') +
+        ' of the last ' + c.ofWeeks + ' (' + c.quests + ' quests, ' + c.perWeek + '/week)' +
+        (stats.yearsActive >= 0.2 ? ' · going ' + stats.yearsActive + ' years' : '')));
+
+      var strand = el('div', 'strand');
+      Progress.STRANDS.forEach(function (s) {
+        var v = tally[s.id] || { earned: 0, total: 0 };
+        var row = el('div', 'strand-row');
+        var lab = el('div', 'sl', s.emoji + ' ' + s.label);
+        lab.title = s.blurb;
+        row.appendChild(lab);
+        var bar = el('div', 'strand-bar');
+        var i = document.createElement('i');
+        i.style.width = (v.total ? (v.earned / v.total * 100) : 0).toFixed(0) + '%';
+        bar.appendChild(i);
+        row.appendChild(bar);
+        row.appendChild(el('div', 'sn', v.earned + '/' + v.total));
+        strand.appendChild(row);
+      });
+      box.appendChild(strand);
+
+      var seasonRow = el('div', 'chips');
+      seasonRow.style.marginTop = '14px';
+      CURRICULUM.SEASONS.forEach(function (s) {
+        var f = stats.seasons[s.n] || { done: 0, total: 0 };
+        var c = el('span', 'chip' + (f.done === f.total && f.total ? '' : ' chip-plain'),
+          s.emoji + ' ' + s.title + ' ' + f.done + '/' + f.total);
+        seasonRow.appendChild(c);
+      });
+      box.appendChild(seasonRow);
+
+      // Every badge in the track, locked ones greyed, so the path ahead is visible.
+      var bg = el('div', 'badges');
+      bg.style.marginTop = '16px';
+      CURRICULUM.track(t).forEach(function (q) {
+        var earned = kid.badges[q.milestone.badge];
+        var d = el('div', 'badge' + (earned ? '' : ' locked'));
+        d.title = q.title + ' — ' + Progress.STRANDS.filter(function (s) {
+          return s.id === q.milestone.strand;
+        }).map(function (s) { return s.label; })[0];
+        d.appendChild(el('div', 'be', q.emoji));
+        d.appendChild(el('div', 'bt', q.milestone.title));
+        d.appendChild(el('div', 'bd', earned ? earned.date : '—'));
+        bg.appendChild(d);
+      });
+      box.appendChild(bg);
+      host.appendChild(box);
+    });
+  })();
+
+  // ── Curriculum browser
+  (function browse() {
+    var host = document.getElementById('browse');
+    CURRICULUM.SEASONS.forEach(function (s) {
+      var d = document.createElement('details');
+      d.className = 'card card-tight';
+      d.style.marginTop = '10px';
+      var sum = document.createElement('summary');
+      sum.style.cursor = 'pointer';
+      sum.style.fontWeight = '750';
+      sum.textContent = s.emoji + '  Season ' + s.n + ' · ' + s.title;
+      d.appendChild(sum);
+      d.appendChild(el('p', 'small muted', s.theme));
+
+      var g = el('div', 'grid-2');
+      TRACKS.forEach(function (t) {
+        var col = el('div');
+        col.appendChild(el('div', 'eyebrow', CURRICULUM.TRACKS[t].emoji + ' ' + CURRICULUM.TRACKS[t].label));
+        CURRICULUM.inSeason(t, s.n).forEach(function (q) {
+          var item = el('div');
+          item.style.marginBottom = '14px';
+          var a = el('a', 'small');
+          a.href = '../' + t + '/index.html?quest=' + q.id;
+          a.style.fontWeight = '750';
+          a.textContent = q.emoji + '  ' + q.title;
+          item.appendChild(a);
+          if (ctx.progress.isComplete(t, q.id)) {
+            item.appendChild(el('span', 'tiny', ' ✓'));
+          }
+          item.appendChild(el('div', 'tiny muted', q.bigIdea));
+          item.appendChild(el('div', 'tiny muted', '→ ' + q.beyondRobotics));
+          var ch = el('div', 'chips');
+          ch.style.marginTop = '4px';
+          q.concepts.forEach(function (c) {
+            ch.appendChild(el('span', 'chip chip-plain', c));
+          });
+          item.appendChild(ch);
+          col.appendChild(item);
+        });
+        g.appendChild(col);
+      });
+      d.appendChild(g);
+      host.appendChild(d);
+    });
+  })();
+
+  // ── Notes
+  (function notes() {
+    var host = document.getElementById('notes');
+    var any = false;
+    TRACKS.forEach(function (t) {
+      var kid = ctx.progress.kid(t);
+      var ids = Object.keys(kid.notes);
+      if (!ids.length) return;
+      any = true;
+      host.appendChild(el('h3', null, CURRICULUM.TRACKS[t].emoji + ' ' + CURRICULUM.TRACKS[t].label));
+      ids.forEach(function (id) {
+        var q = CURRICULUM.get(id);
+        var box = el('div', 'card card-tight');
+        box.style.marginBottom = '10px';
+        box.appendChild(el('div', 'eyebrow',
+          (q ? q.emoji + ' ' + q.title : id) + ' · ' + (kid.completed[id] || 'in progress')));
+        box.appendChild(el('p', 'small', kid.notes[id]));
+        host.appendChild(box);
+      });
+    });
+    if (!any) {
+      host.appendChild(el('p', 'muted small',
+        'Nothing yet. The notes box at the bottom of every quest is worth using — the things a ' +
+        '4-year-old says about whether a robot has feelings do not survive in memory.'));
+    }
+  })();
+
+  // ── Backup
+  (function backup() {
+    document.getElementById('exportBtn').addEventListener('click', function () {
+      ctx.progress.download();
+      Lab.toast('Exported. Put it somewhere that syncs.', 'ok');
+    });
+    var file = document.getElementById('importFile');
+    document.getElementById('importBtn').addEventListener('click', function () { file.click(); });
+    file.addEventListener('change', function () {
+      var f = file.files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function () {
+        try {
+          ctx.progress.importJSON(r.result);
+          Lab.toast('Merged. Reloading…', 'ok');
+          setTimeout(function () { location.reload(); }, 900);
+        } catch (e) {
+          Lab.toast('Could not import: ' + e.message, 'warn', 4200);
+        }
+      };
+      r.readAsText(f);
+    });
+    document.getElementById('resetBtn').addEventListener('click', function () {
+      if (!confirm('Erase all progress for both girls? Export first if you have not.')) return;
+      if (!confirm('Really? This cannot be undone.')) return;
+      ctx.progress.reset();
+      location.reload();
+    });
+
+    var totalDone = TRACKS.reduce(function (n, t) {
+      return n + Object.keys(ctx.progress.kid(t).completed).length;
+    }, 0);
+    document.getElementById('backupInfo').textContent =
+      totalDone + ' completed quests stored · last change ' + ctx.progress.data.updated;
+  })();
+
+  // ── Names
+  (function names() {
+    var host = document.getElementById('names');
+    TRACKS.forEach(function (t) {
+      var wrap = el('div');
+      wrap.style.flex = '1 1 220px';
+      wrap.appendChild(el('div', 'eyebrow', CURRICULUM.TRACKS[t].emoji + ' ' + CURRICULUM.TRACKS[t].label));
+      var input = document.createElement('input');
+      input.type = 'text';
+      var kid = ctx.progress.kid(t);
+      input.value = (kid.name && kid.name !== t) ? kid.name : '';
+      input.placeholder = 'Her name';
+      // The .eyebrow above carries the visible label but is not associated with
+      // the field, so with VoiceOver this announced only "text field".
+      input.id = 'kidName-' + t;
+      input.setAttribute('aria-label',
+        'Name for the ' + CURRICULUM.TRACKS[t].label + ' track (ages ' + CURRICULUM.TRACKS[t].ages + ')');
+      input.addEventListener('change', function () {
+        ctx.progress.setKidName(t, input.value || t);
+        Lab.toast('Saved.', 'ok');
+      });
+      wrap.appendChild(input);
+      host.appendChild(wrap);
+    });
+  })();
+})();
+</script>
+</body>
+</html>
