@@ -1,0 +1,1 @@
+- [project_hardware.md](project_hardware.md) — Physical hardware: Reachy Mini, iPad Pro 10", MacBook Pro
