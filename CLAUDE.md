@@ -15,8 +15,7 @@ Family robotics education project. Three parallel explorations of how to teach r
 - No external API keys required for basic functionality
 
 ## Port Assignments
-Check `~/.claude/ports.json` before assigning ports. Use Tier 4 (4000-4999) for dev.
+On Don’s shared development hosts, check `~/.claude/ports.json` before assigning ports. Use Tier 4 (4000-4999) for dev and loopback binding by default.
 
 ## Branch Strategy
-- Each exploration approach gets its own branch: `issue-{N}-{short-desc}`
-- PRs back to main with full description of what was built
+Use short-lived descriptive branches (including `codex/`) and reviewable PRs, then squash merge and clean up branches. Use issues for backlog tracking, coordination, deferred work or autonomous dispatch; a bounded change completed now may use its PR as the work record. Link relevant existing issues, and use Fixes/Closes only when the PR completes them. Work directly from clear requests and acceptance criteria; use a short plan for substantial multi-step work and a durable spec for ambiguity, significant risk, architecture, migrations or handoff. Reuse adequate existing plans. Run checks appropriate to the change and report actual results and limits. Target PRs to the repository default branch (`master`) with a description of what was built.
